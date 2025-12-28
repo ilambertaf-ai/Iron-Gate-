@@ -3,13 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fitness Calendar</title>
+  <title>Iron-Gate Calendar</title>
 
-  <!-- PWA Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Fitness Calendar" />
-  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-title" content="Iron-Gate" />
 
   <style>
     body {
@@ -24,7 +21,28 @@
       text-align: center;
       background: #020617;
       font-weight: 600;
-      letter-spacing: 0.5px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      background: #020617;
+    }
+
+    .toolbar button {
+      background: #1e293b;
+      color: #e5e7eb;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .toolbar button.active {
+      background: #22c55e;
+      color: #020617;
     }
 
     .calendar {
@@ -38,95 +56,157 @@
       background: #020617;
       border-radius: 10px;
       padding: 6px;
-      min-height: 80px;
+      min-height: 90px;
       font-size: 0.75rem;
       cursor: pointer;
     }
 
-    .day.active {
+    .day.today {
       outline: 2px solid #22c55e;
     }
 
-    .stats {
+    .panel {
       padding: 1rem;
       border-top: 1px solid #1e293b;
     }
 
-    button {
-      background: #22c55e;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-weight: 600;
-      cursor: pointer;
+    .panel h3 {
+      margin-top: 0;
     }
 
-    input {
+    input, select {
       width: 100%;
       margin: 6px 0;
       padding: 6px;
       border-radius: 6px;
       border: none;
     }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    button.save {
+      margin-top: 10px;
+      background: #22c55e;
+      color: #020617;
+      border: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-<header>🏋️ Fitness Calendar</header>
+<header>Iron-Gate Fitness Calendar</header>
+
+<div class="toolbar">
+  <button class="active">Month</button>
+  <button disabled>7 Day</button>
+  <button disabled>Day</button>
+</div>
 
 <div class="calendar" id="calendar"></div>
 
-<div class="stats" id="stats">
-  <h3>Day Details</h3>
-  <input id="minutes" placeholder="Minutes in gym" type="number" />
-  <input id="sets" placeholder="Total sets" type="number" />
-  <input id="reps" placeholder="Total reps" type="number" />
-  <button onclick="saveDay()">Save</button>
+<div class="panel" id="panel" style="display:none">
+  <h3 id="panelDate"></h3>
+
+  <h4>Workout</h4>
+  <input id="exercise" placeholder="Exercise Type" />
+  <div class="row">
+    <input id="sets" type="number" placeholder="Sets" />
+    <input id="reps" type="number" placeholder="Reps" />
+  </div>
+  <input id="weight" type="number" placeholder="Weight" />
+
+  <h4>Body Metrics</h4>
+  <div class="row">
+    <input id="bodyweight" placeholder="Body Weight" />
+    <input id="rbicep" placeholder="Right Bicep" />
+  </div>
+  <div class="row">
+    <input id="lbicep" placeholder="Left Bicep" />
+    <input id="rcalf" placeholder="Right Calf" />
+  </div>
+  <input id="lcalf" placeholder="Left Calf" />
+
+  <h4>Diet & Recovery</h4>
+  <div class="row">
+    <input id="protein" placeholder="Protein (g)" />
+    <input id="calories" placeholder="Calories" />
+  </div>
+  <div class="row">
+    <input id="water" placeholder="Water" />
+    <input id="sleep" placeholder="Sleep (hrs)" />
+  </div>
+  <select id="stool">
+    <option value="">Stool Pass?</option>
+    <option>Yes</option>
+    <option>No</option>
+  </select>
+
+  <button class="save" onclick="saveDay()">Save Day</button>
 </div>
 
 <script>
-  const calendarEl = document.getElementById('calendar');
-  const statsEl = document.getElementById('stats');
+  const calendar = document.getElementById('calendar');
+  const panel = document.getElementById('panel');
+  const panelDate = document.getElementById('panelDate');
   let selectedDate = null;
 
-  function loadCalendar() {
-    calendarEl.innerHTML = '';
-    const year = new Date().getFullYear();
+  function loadMonth() {
+    calendar.innerHTML = '';
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
 
-    for (let i = 1; i <= 365; i++) {
-      const day = document.createElement('div');
-      day.className = 'day';
-      day.textContent = `Day ${i}`;
-      day.onclick = () => selectDay(i);
-      calendarEl.appendChild(day);
+    for (let i = 0; i < first.getDay(); i++) {
+      calendar.appendChild(document.createElement('div'));
+    }
+
+    for (let d = 1; d <= last.getDate(); d++) {
+      const date = new Date(year, month, d);
+      const cell = document.createElement('div');
+      cell.className = 'day';
+      cell.textContent = d;
+
+      if (date.toDateString() === now.toDateString()) {
+        cell.classList.add('today');
+      }
+
+      cell.onclick = () => openDay(date);
+      calendar.appendChild(cell);
     }
   }
 
-  function selectDay(dayIndex) {
-    selectedDate = dayIndex;
-    document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
-    document.querySelectorAll('.day')[dayIndex - 1].classList.add('active');
+  function openDay(date) {
+    selectedDate = date.toISOString().split('T')[0];
+    panel.style.display = 'block';
+    panelDate.textContent = date.toDateString();
 
-    const data = JSON.parse(localStorage.getItem(`day-${dayIndex}`)) || {};
-    document.getElementById('minutes').value = data.minutes || '';
-    document.getElementById('sets').value = data.sets || '';
-    document.getElementById('reps').value = data.reps || '';
+    const data = JSON.parse(localStorage.getItem(selectedDate)) || {};
+    for (const id in data) {
+      const el = document.getElementById(id);
+      if (el) el.value = data[id];
+    }
   }
 
   function saveDay() {
     if (!selectedDate) return;
-
-    const data = {
-      minutes: document.getElementById('minutes').value,
-      sets: document.getElementById('sets').value,
-      reps: document.getElementById('reps').value,
-    };
-
-    localStorage.setItem(`day-${selectedDate}`, JSON.stringify(data));
+    const inputs = panel.querySelectorAll('input, select');
+    const data = {};
+    inputs.forEach(i => data[i.id] = i.value);
+    localStorage.setItem(selectedDate, JSON.stringify(data));
     alert('Saved');
   }
 
-  loadCalendar();
+  loadMonth();
 </script>
 
 </body>
