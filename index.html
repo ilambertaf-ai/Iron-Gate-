@@ -10,204 +10,724 @@
 
   <style>
     :root {
-      --bg: #f8fafc;
-      --panel: #ffffff;
-      --border: #e5e7eb;
-      --text: #0f172a;
-      --muted: #64748b;
-      --accent: #16a34a;
+      --bg: #0b0f14;
+      --panel: #121824;
+      --panel2: #0f1520;
+      --border: #253042;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #c81d25; /* iron red */
+      --accent2: #16a34a;
+      --shadow: 0 8px 24px rgba(0,0,0,.35);
     }
+
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(200,29,37,.22), transparent 60%), var(--bg);
       color: var(--text);
       display: grid;
-      grid-template-columns: 260px 1fr;
+      grid-template-columns: 280px 1fr;
       height: 100vh;
     }
 
     aside {
-      background: var(--panel);
+      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
       border-right: 1px solid var(--border);
       padding: 1rem;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 14px;
     }
 
-    aside h2 {
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand h2 {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,.75);
+      border: 1px solid rgba(255,255,255,.16);
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+
+    .navTitle {
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      color: rgba(255,255,255,.55);
+      text-transform: uppercase;
+      margin: 6px 0 2px;
     }
 
     .nav button {
       width: 100%;
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
+      color: var(--text);
       text-align: left;
-      padding: 8px 10px;
-      border-radius: 8px;
+      padding: 10px 10px;
+      border-radius: 10px;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+
+    .nav button:hover {
+      border-color: rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
     }
 
     .nav button.active {
-      background: #dcfce7;
-      color: #166534;
+      border-color: rgba(200,29,37,.55);
+      background: rgba(200,29,37,.12);
+    }
+
+    .subnav {
+      display: none;
+      padding-left: 10px;
+      border-left: 1px solid rgba(255,255,255,.08);
+      margin-left: 8px;
+      gap: 6px;
+    }
+
+    .subnav.show { display: grid; }
+
+    .subnav button {
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,.02);
     }
 
     .files {
       font-size: 0.85rem;
       color: var(--muted);
       overflow-y: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      max-height: 32vh;
     }
+
+    .files .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 6px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .files .item:hover {
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.10);
+    }
+
+    .files .item small { color: rgba(255,255,255,.55); }
 
     main {
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     header {
-      padding: 1rem;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border);
-      font-weight: 600;
+      font-weight: 750;
+      letter-spacing: .3px;
+      background: rgba(18,24,36,.55);
+      backdrop-filter: blur(8px);
+    }
+
+    .content {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      min-height: 0;
+      height: 100%;
     }
 
     .calendar {
-      flex: 1;
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 1px;
-      background: var(--border);
+      background: rgba(255,255,255,.06);
+      min-height: 0;
+    }
+
+    .weekdayRow {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,.06);
+    }
+
+    .weekday {
+      background: rgba(18,24,36,.55);
+      padding: 10px 12px;
+      color: rgba(255,255,255,.65);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
     }
 
     .day {
-      background: var(--panel);
-      padding: 8px;
-      min-height: 110px;
+      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
+      padding: 10px 10px 12px;
+      min-height: 120px;
       cursor: pointer;
       position: relative;
     }
 
+    .day:hover { filter: brightness(1.07); }
+
     .day.today::after {
       content: '';
       position: absolute;
-      top: 6px;
-      right: 6px;
-      width: 8px;
-      height: 8px;
+      top: 10px;
+      right: 10px;
+      width: 10px;
+      height: 10px;
       background: var(--accent);
       border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(200,29,37,.18);
     }
 
     .day.selected {
       outline: 2px solid var(--accent);
       z-index: 2;
+      box-shadow: 0 0 0 6px rgba(200,29,37,.14);
     }
 
-    .day small {
-      color: var(--muted);
+    .day strong { font-size: 0.95rem; }
+    .day small { color: rgba(255,255,255,.55); }
+
+    .day .mini {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,.62);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      padding: 2px 7px;
+      border-radius: 999px;
     }
 
     .panel {
       border-top: 1px solid var(--border);
-      background: var(--panel);
-      padding: 1rem;
+      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
+      padding: 14px 16px;
       display: none;
+      box-shadow: var(--shadow);
+      max-height: 44vh;
+      overflow: auto;
     }
 
-    .panel h3 { margin-top: 0; }
+    .panelHeader {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel h3 { margin: 0 0 8px; }
+    .panel .hint { color: rgba(255,255,255,.55); font-size: .85rem; }
 
     input, select {
       width: 100%;
-      padding: 8px;
-      margin: 4px 0 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 0.9rem;
+      padding: 10px;
+      margin: 6px 0 10px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
     }
 
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    input::placeholder { color: rgba(255,255,255,.45); }
 
-    .save {
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .sectionTitle {
+      margin: 10px 0 6px;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,.58);
+      text-transform: uppercase;
+    }
+
+    .exerciseRow {
+      display: grid;
+      grid-template-columns: 1.6fr .7fr .7fr .9fr 42px;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.02);
+    }
+
+    .exerciseRow select,
+    .exerciseRow input {
+      margin: 0;
       padding: 10px;
-      font-weight: 600;
+      border-radius: 10px;
+    }
+
+    .iconBtn {
+      height: 38px;
+      width: 38px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.85);
       cursor: pointer;
+      font-weight: 800;
+    }
+
+    .iconBtn:hover { filter: brightness(1.1); }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .btn {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 750;
+      cursor: pointer;
+      letter-spacing: .2px;
+    }
+
+    .btn.primary {
+      background: rgba(200,29,37,.16);
+      border-color: rgba(200,29,37,.55);
+    }
+
+    .btn.primary:hover { filter: brightness(1.12); }
+
+    /* Data views */
+    .dataWrap {
+      padding: 16px;
+      display: none;
+      overflow: auto;
+      height: 100%;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .card h3 { margin: 0 0 8px; }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .list .rowItem {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.02);
+      cursor: pointer;
+    }
+
+    .list .rowItem:hover { filter: brightness(1.08); }
+
+    .kpi {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .kpi .pill {
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 8px 6px;
+      text-align: left;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,.85);
+    }
+    th { color: rgba(255,255,255,.58); font-weight: 700; }
+
+    @media (max-width: 900px) {
+      body { grid-template-columns: 1fr; }
+      aside { height: auto; }
     }
   </style>
 </head>
 <body>
 
 <aside>
-  <h2>Iron-Gate</h2>
-  <div class="nav">
-    <button class="active" onclick="setView('month', this)">Month</button>
-    <button onclick="setView('week', this)">7 Day</button>
-    <button onclick="setView('day', this)">Day</button>
+  <div class="brand">
+    <!-- Tough placeholder logo (inline SVG). Replace with generated bear image later. -->
+    <svg width="40" height="40" viewBox="0 0 64 64" aria-label="Iron Gate Logo" role="img">
+      <defs>
+        <linearGradient id="g" x1="0" x2="1">
+          <stop offset="0" stop-color="#c81d25" />
+          <stop offset="1" stop-color="#ff4d57" />
+        </linearGradient>
+      </defs>
+      <path fill="url(#g)" d="M32 4c7 0 13 6 13 13v2c4 2 7 6 7 11v9c0 12-10 21-20 21S12 51 12 39v-9c0-5 3-9 7-11v-2C19 10 25 4 32 4z" opacity=".92"/>
+      <path fill="#0b0f14" d="M22 31c3-2 6-3 10-3s7 1 10 3v6c-3 2-6 3-10 3s-7-1-10-3v-6z" opacity=".9"/>
+      <path fill="#f1f5f9" d="M24 30c-2 0-3-1-3-3 0-1 1-2 2-2 2 0 3 1 3 3 0 1-1 2-2 2zm16 0c-2 0-3-1-3-3 0-1 1-2 2-2 2 0 3 1 3 3 0 1-1 2-2 2z"/>
+      <path fill="#f1f5f9" d="M28 44h8c0 3-2 6-4 6s-4-3-4-6z" opacity=".9"/>
+      <path fill="#cbd5e1" d="M6 22h10v6H6zm42 0h10v6H48z"/>
+      <path fill="#94a3b8" d="M2 20h6v10H2zm56 20h6v10h-6z"/>
+      <path fill="#cbd5e1" d="M48 42h10v6H48z"/>
+    </svg>
+    <h2>Iron Gate</h2>
+    <span class="badge">RUGGED</span>
   </div>
 
-  <div class="files" id="files">
-    <strong>Saved Days</strong><br/>
+  <div class="navTitle">Mode</div>
+  <div class="nav">
+    <button id="modeCalendar" class="active" onclick="setMode('calendar', this)">Calendar</button>
+    <button id="modeData" onclick="setMode('data', this)">Data</button>
+  </div>
+
+  <div id="calendarControls">
+    <div class="navTitle">View</div>
+    <div class="nav">
+      <button class="active" onclick="setView('month', this)">Month</button>
+      <button onclick="setView('week', this)">7 Day</button>
+      <button onclick="setView('day', this)">Day</button>
+    </div>
+
+    <div class="files" id="files">
+      <strong>Saved Days</strong>
+      <div id="filesList"></div>
+    </div>
+  </div>
+
+  <div id="dataControls" style="display:none">
+    <div class="navTitle">Data</div>
+    <div class="nav">
+      <button id="dataExercisesBtn" class="active" onclick="setDataTab('exercises', this)">Exercises</button>
+      <button id="dataHealthBtn" onclick="setDataTab('health', this)">Health</button>
+    </div>
   </div>
 </aside>
 
 <main>
   <header id="header"></header>
-  <div class="calendar" id="calendar"></div>
 
-  <div class="panel" id="panel">
-    <h3 id="panelDate"></h3>
-
-    <input id="exercise" placeholder="Exercise" />
-    <div class="row">
-      <input id="sets" placeholder="Sets" />
-      <input id="reps" placeholder="Reps" />
+  <div class="content">
+    <!-- Calendar view -->
+    <div id="calendarView" style="min-height:0; display:block;">
+      <div class="weekdayRow" id="weekdayRow"></div>
+      <div class="calendar" id="calendar"></div>
     </div>
-    <input id="weight" placeholder="Weight" />
 
-    <h4>Body & Recovery</h4>
-    <div class="row">
-      <input id="bodyweight" placeholder="Body Weight" />
-      <input id="sleep" placeholder="Sleep (hrs)" />
+    <!-- Data view -->
+    <div id="dataView" class="dataWrap">
+      <div id="dataExercises" style="display:block">
+        <div class="card">
+          <h3>Top Lifts</h3>
+          <div class="kpi">
+            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Volume</div><div id="topVolume" style="font-weight:800; font-size:1.05rem; margin-top:6px;">—</div><div id="topVolumeSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
+            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Max Weight</div><div id="topMax" style="font-weight:800; font-size:1.05rem; margin-top:6px;">—</div><div id="topMaxSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Exercises</h3>
+          <div class="list" id="exerciseList"></div>
+        </div>
+
+        <div class="card" id="exerciseDetailCard" style="display:none">
+          <h3 id="exerciseDetailTitle">Exercise</h3>
+          <div id="exerciseDetailSummary" style="color:rgba(255,255,255,.65); margin:6px 0 10px;"></div>
+          <table>
+            <thead><tr><th>Date</th><th>Sets</th><th>Reps</th><th>Weight</th></tr></thead>
+            <tbody id="exerciseDetailTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="dataHealth" style="display:none">
+        <div class="card">
+          <h3>Most Recent Health</h3>
+          <div id="healthMostRecent" style="color:rgba(255,255,255,.8)">—</div>
+          <div id="healthMostRecentDate" style="color:rgba(255,255,255,.55); margin-top:6px;">—</div>
+        </div>
+
+        <div class="card">
+          <h3>Health Metrics</h3>
+          <div class="list" id="healthMetricList"></div>
+        </div>
+
+        <div class="card" id="healthDetailCard" style="display:none">
+          <h3 id="healthDetailTitle">Metric</h3>
+          <table>
+            <thead><tr><th>Date</th><th>Value</th></tr></thead>
+            <tbody id="healthDetailTable"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <select id="stool">
-      <option value="">Stool Pass?</option>
-      <option>Yes</option>
-      <option>No</option>
-    </select>
 
-    <button class="save" onclick="saveDay()">Save</button>
+    <!-- Panel (day details) -->
+    <div class="panel" id="panel">
+      <div class="panelHeader">
+        <div>
+          <h3 id="panelDate">—</h3>
+          <div class="hint">Add exercises and health metrics. Everything saves automatically to your device.</div>
+        </div>
+      </div>
+
+      <div class="sectionTitle">Workouts</div>
+      <div id="workoutRows"></div>
+      <div class="actions">
+        <button class="btn" onclick="addWorkoutRow()">+ Add Exercise</button>
+      </div>
+
+      <div class="sectionTitle">Body Measurements</div>
+      <div class="row">
+        <input id="bodyweight" placeholder="Body Weight" inputmode="decimal" />
+        <input id="rbicep" placeholder="Right Bicep" inputmode="decimal" />
+      </div>
+      <div class="row">
+        <input id="lbicep" placeholder="Left Bicep" inputmode="decimal" />
+        <input id="rcalf" placeholder="Right Calf" inputmode="decimal" />
+      </div>
+      <input id="lcalf" placeholder="Left Calf" inputmode="decimal" />
+
+      <div class="sectionTitle">Diet & Recovery</div>
+      <div class="row">
+        <input id="protein" placeholder="Protein (g)" inputmode="numeric" />
+        <input id="calories" placeholder="Calories" inputmode="numeric" />
+      </div>
+      <div class="row">
+        <input id="water" placeholder="Water" inputmode="decimal" />
+        <input id="sleep" placeholder="Sleep (hrs)" inputmode="decimal" />
+      </div>
+      <select id="stool">
+        <option value="">Stool Pass?</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <div class="actions">
+        <button class="btn primary" onclick="saveDay()">Save Day</button>
+        <button class="btn" onclick="clearDay()">Clear Day</button>
+      </div>
+    </div>
   </div>
 </main>
 
 <script>
+  // --------------------
+  // Exercise Library
+  // --------------------
+  const EXERCISES = [
+    'Bench Press','DB Press','Cable Fly','Barbell Shoulder Press','DB Shoulder Press',
+    'Back Squat','Front Squat','Hack Squat','Leg Press','Hamstring Curl','Leg Extension',
+    'Standing Calf Raise','Seated Calf Raise','Pull-Up','Dips','Pull-Down',
+    'Bicep Curl','Preacher Curl','Triceps Push-Down'
+  ];
+
+  // --------------------
+  // DOM
+  // --------------------
   const calendar = document.getElementById('calendar');
+  const weekdayRow = document.getElementById('weekdayRow');
   const panel = document.getElementById('panel');
   const panelDate = document.getElementById('panelDate');
   const header = document.getElementById('header');
-  const files = document.getElementById('files');
 
-  let view = 'month';
+  const filesList = document.getElementById('filesList');
+
+  const calendarView = document.getElementById('calendarView');
+  const dataView = document.getElementById('dataView');
+  const calendarControls = document.getElementById('calendarControls');
+  const dataControls = document.getElementById('dataControls');
+
+  const dataExercises = document.getElementById('dataExercises');
+  const dataHealth = document.getElementById('dataHealth');
+
+  const exerciseList = document.getElementById('exerciseList');
+  const exerciseDetailCard = document.getElementById('exerciseDetailCard');
+  const exerciseDetailTitle = document.getElementById('exerciseDetailTitle');
+  const exerciseDetailSummary = document.getElementById('exerciseDetailSummary');
+  const exerciseDetailTable = document.getElementById('exerciseDetailTable');
+
+  const topVolume = document.getElementById('topVolume');
+  const topVolumeSub = document.getElementById('topVolumeSub');
+  const topMax = document.getElementById('topMax');
+  const topMaxSub = document.getElementById('topMaxSub');
+
+  const healthMostRecent = document.getElementById('healthMostRecent');
+  const healthMostRecentDate = document.getElementById('healthMostRecentDate');
+  const healthMetricList = document.getElementById('healthMetricList');
+  const healthDetailCard = document.getElementById('healthDetailCard');
+  const healthDetailTitle = document.getElementById('healthDetailTitle');
+  const healthDetailTable = document.getElementById('healthDetailTable');
+
+  const workoutRows = document.getElementById('workoutRows');
+
+  // --------------------
+  // State
+  // --------------------
+  let mode = 'calendar'; // 'calendar' | 'data'
+  let dataTab = 'exercises'; // 'exercises' | 'health'
+  let view = 'month'; // 'month' | 'week' | 'day'
   let selectedCell = null;
   let selectedDate = new Date();
 
-  function setView(v, btn) {
-    view = v;
-    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    render();
+  // --------------------
+  // Helpers
+  // --------------------
+  function dateKey(d) {
+    return d.toISOString().split('T')[0];
   }
 
-  function render() {
+  function isDateKey(k) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(k);
+  }
+
+  function safeNum(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function getAllDateKeys() {
+    return Object.keys(localStorage).filter(isDateKey).sort();
+  }
+
+  function loadEntry(key) {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      // Migration: old flat structure -> new structure
+      if (parsed && !parsed.workouts && !parsed.health) {
+        return {
+          workouts: [],
+          health: parsed
+        };
+      }
+      return {
+        workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
+        health: parsed.health && typeof parsed.health === 'object' ? parsed.health : {}
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  function saveEntry(key, entry) {
+    localStorage.setItem(key, JSON.stringify(entry));
+  }
+
+  function weekdaysHeader() {
+    const names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    weekdayRow.innerHTML = '';
+    names.forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'weekday';
+      el.textContent = n;
+      weekdayRow.appendChild(el);
+    });
+  }
+
+  // --------------------
+  // Mode / Tabs
+  // --------------------
+  function setMode(next, btn) {
+    mode = next;
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    if (mode === 'calendar') {
+      calendarControls.style.display = 'block';
+      dataControls.style.display = 'none';
+      dataView.style.display = 'none';
+      calendarView.style.display = 'block';
+      panel.style.display = 'none';
+      renderCalendar();
+    } else {
+      calendarControls.style.display = 'none';
+      dataControls.style.display = 'block';
+      calendarView.style.display = 'none';
+      panel.style.display = 'none';
+      dataView.style.display = 'block';
+      renderData();
+    }
+  }
+
+  function setDataTab(tab, btn) {
+    dataTab = tab;
+    document.querySelectorAll('#dataControls .nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderData();
+  }
+
+  function setView(v, btn) {
+    view = v;
+    document.querySelectorAll('#calendarControls .nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Always anchor around the real current day unless user clicked another day
+    renderCalendar();
+  }
+
+  // --------------------
+  // Calendar Render
+  // --------------------
+  function renderCalendar() {
+    weekdaysHeader();
     calendar.innerHTML = '';
-    panel.style.display = 'none';
-    header.textContent = selectedDate.toDateString();
+    header.textContent = '';
 
     if (view === 'month') renderMonth();
     if (view === 'week') renderWeek();
@@ -227,14 +747,14 @@
     for (let i = 0; i < first.getDay(); i++) calendar.appendChild(document.createElement('div'));
 
     for (let d = 1; d <= last.getDate(); d++) {
-      const date = new Date(y, m, d);
-      addDayCell(date);
+      addDayCell(new Date(y, m, d));
     }
   }
 
   function renderWeek() {
     const start = new Date(selectedDate);
     start.setDate(start.getDate() - start.getDay());
+    header.textContent = `Week of ${start.toLocaleDateString()}`;
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(start);
@@ -244,18 +764,38 @@
   }
 
   function renderDay() {
+    header.textContent = selectedDate.toDateString();
     addDayCell(selectedDate);
   }
 
   function addDayCell(date) {
     const cell = document.createElement('div');
     cell.className = 'day';
-    cell.innerHTML = `<strong>${date.getDate()}</strong><br/><small>${date.toLocaleDateString()}</small>`;
+
+    const key = dateKey(date);
+    const entry = loadEntry(key);
+
+    let mini = '';
+    if (entry && entry.workouts && entry.workouts.length) {
+      const count = entry.workouts.length;
+      const totalSets = entry.workouts.reduce((s,w)=> s + safeNum(w.sets), 0);
+      const totalReps = entry.workouts.reduce((s,w)=> s + safeNum(w.reps), 0);
+      mini = `<div class="mini"><span class="chip">${count} lifts</span><span class="chip">${totalSets} sets</span><span class="chip">${totalReps} reps</span></div>`;
+    }
+
+    cell.innerHTML = `<strong>${date.getDate()}</strong><br/><small>${date.toLocaleDateString()}</small>${mini}`;
 
     if (date.toDateString() === new Date().toDateString()) cell.classList.add('today');
 
     cell.onclick = () => openDay(date, cell);
     calendar.appendChild(cell);
+
+    // Move selection box to selected day in all views
+    if (date.toDateString() === selectedDate.toDateString() && view !== 'month') {
+      if (selectedCell) selectedCell.classList.remove('selected');
+      selectedCell = cell;
+      cell.classList.add('selected');
+    }
   }
 
   function openDay(date, cell) {
@@ -264,35 +804,389 @@
     cell.classList.add('selected');
 
     selectedDate = date;
+
+    const key = dateKey(date);
+    const entry = loadEntry(key) || { workouts: [], health: {} };
+
     panel.style.display = 'block';
     panelDate.textContent = date.toDateString();
 
-    const key = date.toISOString().split('T')[0];
-    const data = JSON.parse(localStorage.getItem(key)) || {};
-    panel.querySelectorAll('input, select').forEach(el => el.value = data[el.id] || '');
-  }
+    // Render workouts
+    workoutRows.innerHTML = '';
+    if (entry.workouts.length) {
+      entry.workouts.forEach(w => addWorkoutRow(w));
+    } else {
+      addWorkoutRow();
+    }
 
-  function saveDay() {
-    const key = selectedDate.toISOString().split('T')[0];
-    const data = {};
-    panel.querySelectorAll('input, select').forEach(el => data[el.id] = el.value);
-    localStorage.setItem(key, JSON.stringify(data));
-    loadFiles();
-  }
-
-  function loadFiles() {
-    files.innerHTML = '<strong>Saved Days</strong><br/>';
-    Object.keys(localStorage).sort().forEach(k => {
-      if (k.match(/\d{4}-\d{2}-\d{2}/)) {
-        const div = document.createElement('div');
-        div.textContent = k;
-        files.appendChild(div);
-      }
+    // Health
+    const healthFields = ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'];
+    healthFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = entry.health?.[id] ?? '';
     });
   }
 
-  render();
+  // --------------------
+  // Workout Rows
+  // --------------------
+  function addWorkoutRow(initial = null) {
+    const row = document.createElement('div');
+    row.className = 'exerciseRow';
+
+    const sel = document.createElement('select');
+    EXERCISES.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    if (initial?.exercise) sel.value = initial.exercise;
+
+    const sets = document.createElement('input');
+    sets.placeholder = 'Sets';
+    sets.inputMode = 'numeric';
+    sets.value = initial?.sets ?? '';
+
+    const reps = document.createElement('input');
+    reps.placeholder = 'Reps';
+    reps.inputMode = 'numeric';
+    reps.value = initial?.reps ?? '';
+
+    const weight = document.createElement('input');
+    weight.placeholder = 'Weight';
+    weight.inputMode = 'decimal';
+    weight.value = initial?.weight ?? '';
+
+    const del = document.createElement('button');
+    del.className = 'iconBtn';
+    del.textContent = '×';
+    del.title = 'Remove';
+    del.onclick = () => {
+      row.remove();
+    };
+
+    row.appendChild(sel);
+    row.appendChild(sets);
+    row.appendChild(reps);
+    row.appendChild(weight);
+    row.appendChild(del);
+    workoutRows.appendChild(row);
+  }
+
+  // --------------------
+  // Save / Clear
+  // --------------------
+  function saveDay() {
+    const key = dateKey(selectedDate);
+
+    const workouts = [];
+    workoutRows.querySelectorAll('.exerciseRow').forEach(r => {
+      const [sel, sets, reps, weight] = r.querySelectorAll('select, input');
+      const w = {
+        exercise: sel.value,
+        sets: sets.value,
+        reps: reps.value,
+        weight: weight.value
+      };
+      // Only save if something meaningful entered
+      if (w.exercise && (w.sets || w.reps || w.weight)) workouts.push(w);
+    });
+
+    const health = {};
+    ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'].forEach(id => {
+      const el = document.getElementById(id);
+      health[id] = el ? el.value : '';
+    });
+
+    saveEntry(key, { workouts, health });
+
+    // Refresh calendar cells + sidebar + data
+    renderCalendar();
+    if (mode === 'data') renderData();
+  }
+
+  function clearDay() {
+    const key = dateKey(selectedDate);
+    localStorage.removeItem(key);
+    panel.style.display = 'none';
+    renderCalendar();
+    if (mode === 'data') renderData();
+  }
+
+  // --------------------
+  // Saved Days List
+  // --------------------
+  function loadFiles() {
+    filesList.innerHTML = '';
+    const keys = getAllDateKeys();
+    if (!keys.length) {
+      const empty = document.createElement('div');
+      empty.style.color = 'rgba(255,255,255,.45)';
+      empty.style.padding = '10px 4px';
+      empty.textContent = 'No saved days yet.';
+      filesList.appendChild(empty);
+      return;
+    }
+
+    // Show most recent first
+    keys.slice().reverse().forEach(k => {
+      const entry = loadEntry(k);
+      const div = document.createElement('div');
+      div.className = 'item';
+
+      const left = document.createElement('div');
+      left.innerHTML = `<div style="color:rgba(255,255,255,.85); font-weight:700;">${k}</div>`;
+
+      let meta = '';
+      if (entry?.workouts?.length) {
+        const sets = entry.workouts.reduce((s,w)=>s+safeNum(w.sets),0);
+        const reps = entry.workouts.reduce((s,w)=>s+safeNum(w.reps),0);
+        meta = `${entry.workouts.length} lifts · ${sets}s · ${reps}r`;
+      } else {
+        meta = 'Saved';
+      }
+
+      left.innerHTML += `<small>${meta}</small>`;
+
+      const go = document.createElement('div');
+      go.textContent = '›';
+      go.style.color = 'rgba(255,255,255,.55)';
+      go.style.fontWeight = '900';
+
+      div.appendChild(left);
+      div.appendChild(go);
+
+      div.onclick = () => {
+        selectedDate = new Date(k + 'T12:00:00');
+        setMode('calendar', document.getElementById('modeCalendar'));
+        // For saved days jump to day view
+        document.querySelectorAll('#calendarControls .nav button').forEach(b => b.classList.remove('active'));
+        const dayBtn = Array.from(document.querySelectorAll('#calendarControls .nav button')).find(b => b.textContent.trim() === 'Day');
+        if (dayBtn) {
+          view = 'day';
+          dayBtn.classList.add('active');
+        }
+        renderCalendar();
+        // Open the day details automatically
+        setTimeout(() => {
+          const cell = calendar.querySelector('.day');
+          if (cell) openDay(selectedDate, cell);
+        }, 0);
+      };
+
+      filesList.appendChild(div);
+    });
+  }
+
+  // --------------------
+  // Aggregation for Data Tab
+  // --------------------
+  function aggregate() {
+    const agg = {}; // ex -> {sets,reps,maxWeight, history:[]}
+    EXERCISES.forEach(e => agg[e] = { sets: 0, reps: 0, maxWeight: 0, history: [] });
+
+    const healthSeries = {
+      bodyweight: [], rbicep: [], lbicep: [], rcalf: [], lcalf: [],
+      protein: [], calories: [], water: [], sleep: [], stool: []
+    };
+
+    const keys = getAllDateKeys();
+    keys.forEach(k => {
+      const entry = loadEntry(k);
+      if (!entry) return;
+
+      entry.workouts.forEach(w => {
+        if (!w.exercise || !agg[w.exercise]) return;
+        const sets = safeNum(w.sets);
+        const reps = safeNum(w.reps);
+        const weight = safeNum(w.weight);
+
+        agg[w.exercise].sets += sets;
+        agg[w.exercise].reps += reps;
+        agg[w.exercise].maxWeight = Math.max(agg[w.exercise].maxWeight, weight);
+        agg[w.exercise].history.push({ date: k, sets, reps, weight });
+      });
+
+      const h = entry.health || {};
+      Object.keys(healthSeries).forEach(id => {
+        const v = h[id];
+        if (v !== undefined && v !== null && String(v).length) {
+          healthSeries[id].push({ date: k, value: v });
+        }
+      });
+    });
+
+    return { agg, healthSeries };
+  }
+
+  function renderData() {
+    header.textContent = dataTab === 'exercises' ? 'Data · Exercises' : 'Data · Health';
+
+    dataExercises.style.display = dataTab === 'exercises' ? 'block' : 'none';
+    dataHealth.style.display = dataTab === 'health' ? 'block' : 'none';
+
+    const { agg, healthSeries } = aggregate();
+
+    // Exercises list
+    if (dataTab === 'exercises') {
+      exerciseDetailCard.style.display = 'none';
+      exerciseList.innerHTML = '';
+
+      let bestVol = { name: '—', score: -1, sets: 0, reps: 0 };
+      let bestMax = { name: '—', max: -1 };
+
+      EXERCISES.forEach(name => {
+        const a = agg[name];
+        const score = a.sets + a.reps;
+        if (score > bestVol.score) bestVol = { name, score, sets: a.sets, reps: a.reps };
+        if (a.maxWeight > bestMax.max) bestMax = { name, max: a.maxWeight };
+
+        const row = document.createElement('div');
+        row.className = 'rowItem';
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:850;">${name}</div>
+            <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:2px;">${a.sets} sets · ${a.reps} reps · max ${a.maxWeight || 0}</div>
+          </div>
+          <div style="color:rgba(255,255,255,.55); font-weight:900;">›</div>
+        `;
+        row.onclick = () => showExerciseDetail(name, agg[name]);
+        exerciseList.appendChild(row);
+      });
+
+      topVolume.textContent = bestVol.name;
+      topVolumeSub.textContent = `${bestVol.sets} sets · ${bestVol.reps} reps`;
+
+      topMax.textContent = bestMax.name;
+      topMaxSub.textContent = `max ${bestMax.max < 0 ? 0 : bestMax.max}`;
+    }
+
+    // Health
+    if (dataTab === 'health') {
+      healthDetailCard.style.display = 'none';
+
+      // Most recent day with any health info
+      const keys = getAllDateKeys();
+      let latestKey = null;
+      for (let i = keys.length - 1; i >= 0; i--) {
+        const entry = loadEntry(keys[i]);
+        if (entry && entry.health && Object.values(entry.health).some(v => String(v || '').length)) {
+          latestKey = keys[i];
+          break;
+        }
+      }
+
+      if (!latestKey) {
+        healthMostRecent.textContent = 'No health data saved yet.';
+        healthMostRecentDate.textContent = '—';
+      } else {
+        const entry = loadEntry(latestKey);
+        const h = entry.health || {};
+        healthMostRecentDate.textContent = `Most recent: ${latestKey}`;
+        healthMostRecent.innerHTML = `
+          <div style="display:grid; gap:6px; margin-top:8px;">
+            <div><strong>Body Weight:</strong> ${h.bodyweight || '—'}</div>
+            <div><strong>Right Bicep:</strong> ${h.rbicep || '—'} · <strong>Left Bicep:</strong> ${h.lbicep || '—'}</div>
+            <div><strong>Right Calf:</strong> ${h.rcalf || '—'} · <strong>Left Calf:</strong> ${h.lcalf || '—'}</div>
+            <div><strong>Protein:</strong> ${h.protein || '—'} · <strong>Calories:</strong> ${h.calories || '—'}</div>
+            <div><strong>Water:</strong> ${h.water || '—'} · <strong>Sleep:</strong> ${h.sleep || '—'}</div>
+            <div><strong>Stool Pass:</strong> ${h.stool || '—'}</div>
+          </div>
+        `;
+      }
+
+      const METRICS = [
+        ['bodyweight','Body Weight'],
+        ['rbicep','Right Bicep Measurement'],
+        ['lbicep','Left Bicep Measurement'],
+        ['rcalf','Right Calf Measurement'],
+        ['lcalf','Left Calf Measurement'],
+        ['protein','Protein'],
+        ['calories','Calories'],
+        ['water','Water'],
+        ['sleep','Sleep'],
+        ['stool','Stool Pass']
+      ];
+
+      healthMetricList.innerHTML = '';
+      METRICS.forEach(([id,label]) => {
+        const series = healthSeries[id] || [];
+        const last = series.length ? series[series.length - 1] : null;
+        const row = document.createElement('div');
+        row.className = 'rowItem';
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:850;">${label}</div>
+            <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:2px;">Latest: ${last ? last.value : '—'} ${last ? `(${last.date})` : ''}</div>
+          </div>
+          <div style="color:rgba(255,255,255,.55); font-weight:900;">›</div>
+        `;
+        row.onclick = () => showHealthDetail(label, series);
+        healthMetricList.appendChild(row);
+      });
+    }
+  }
+
+  function showExerciseDetail(name, a) {
+    exerciseDetailCard.style.display = 'block';
+    exerciseDetailTitle.textContent = name;
+    exerciseDetailSummary.textContent = `${a.sets} total sets · ${a.reps} total reps · max weight ${a.maxWeight || 0}`;
+
+    exerciseDetailTable.innerHTML = '';
+    const rows = a.history.slice().sort((x,y) => x.date.localeCompare(y.date));
+    if (!rows.length) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="4" style="color:rgba(255,255,255,.55)">No saved entries yet.</td>`;
+      exerciseDetailTable.appendChild(tr);
+      return;
+    }
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.date}</td><td>${r.sets}</td><td>${r.reps}</td><td>${r.weight}</td>`;
+      exerciseDetailTable.appendChild(tr);
+    });
+
+    exerciseDetailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function showHealthDetail(label, series) {
+    healthDetailCard.style.display = 'block';
+    healthDetailTitle.textContent = label;
+    healthDetailTable.innerHTML = '';
+
+    const rows = series.slice().sort((a,b) => a.date.localeCompare(b.date));
+    if (!rows.length) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="2" style="color:rgba(255,255,255,.55)">No saved entries yet.</td>`;
+      healthDetailTable.appendChild(tr);
+      return;
+    }
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.date}</td><td>${r.value}</td>`;
+      healthDetailTable.appendChild(tr);
+    });
+
+    healthDetailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // --------------------
+  // Init
+  // --------------------
+  function init() {
+    // Start anchored to TODAY
+    selectedDate = new Date();
+    weekdaysHeader();
+    renderCalendar();
+  }
+
+  init();
 </script>
 
 </body>
 </html>
+
