@@ -16,8 +16,7 @@
       --border: #253042;
       --text: #f1f5f9;
       --muted: #94a3b8;
-      --accent: #c81d25; /* iron red */
-      --accent2: #16a34a;
+      --accent: #c81d25;
       --shadow: 0 8px 24px rgba(0,0,0,.35);
     }
 
@@ -40,6 +39,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
+      min-height: 0;
     }
 
     .brand {
@@ -97,24 +97,6 @@
       background: rgba(200,29,37,.12);
     }
 
-    .subnav {
-      display: none;
-      padding-left: 10px;
-      border-left: 1px solid rgba(255,255,255,.08);
-      margin-left: 8px;
-      gap: 6px;
-    }
-
-    .subnav.show { display: grid; }
-
-    .subnav button {
-      font-weight: 600;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      background: rgba(255,255,255,.02);
-    }
-
     .files {
       font-size: 0.85rem;
       color: var(--muted);
@@ -122,6 +104,7 @@
       border-top: 1px solid var(--border);
       padding-top: 12px;
       max-height: 32vh;
+      min-height: 0;
     }
 
     .files .item {
@@ -148,22 +131,70 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+      min-height: 0;
     }
 
     header {
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border);
       font-weight: 750;
       letter-spacing: .3px;
       background: rgba(18,24,36,.55);
       backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
+
+    .headLeft {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .headTitle {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .headRight {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hbtn {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .hbtn.primary {
+      background: rgba(200,29,37,.16);
+      border-color: rgba(200,29,37,.55);
+    }
+
+    .hbtn:active { transform: translateY(1px); }
 
     .content {
       display: grid;
-      grid-template-rows: 1fr auto;
+      grid-template-rows: 1fr;
       min-height: 0;
       height: 100%;
+    }
+
+    .calendarWrap {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
     }
 
     .calendar {
@@ -183,9 +214,9 @@
 
     .weekday {
       background: rgba(18,24,36,.55);
-      padding: 10px 12px;
+      padding: 8px 10px;
       color: rgba(255,255,255,.65);
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       border-bottom: 1px solid rgba(255,255,255,.06);
@@ -193,8 +224,8 @@
 
     .day {
       background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
-      padding: 10px 10px 12px;
-      min-height: 120px;
+      padding: 8px;
+      min-height: 96px;
       cursor: pointer;
       position: relative;
     }
@@ -204,10 +235,10 @@
     .day.today::after {
       content: '';
       position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 10px;
-      height: 10px;
+      top: 8px;
+      right: 8px;
+      width: 9px;
+      height: 9px;
       background: var(--accent);
       border-radius: 50%;
       box-shadow: 0 0 0 3px rgba(200,29,37,.18);
@@ -220,11 +251,10 @@
     }
 
     .day strong { font-size: 0.95rem; }
-    .day small { color: rgba(255,255,255,.55); }
 
     .day .mini {
       margin-top: 8px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: rgba(255,255,255,.62);
       display: flex;
       flex-wrap: wrap;
@@ -238,25 +268,32 @@
       border-radius: 999px;
     }
 
-    .panel {
-      border-top: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
-      padding: 14px 16px;
+    /* Full-screen editor "page" */
+    .editorView {
       display: none;
-      box-shadow: var(--shadow);
-      max-height: 44vh;
+      height: 100%;
       overflow: auto;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
     }
 
-    .panelHeader {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 10px;
+    .editorCard {
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.15);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      max-width: 980px;
+      margin: 0 auto;
     }
 
-    .panel h3 { margin: 0 0 8px; }
-    .panel .hint { color: rgba(255,255,255,.55); font-size: .85rem; }
+    .sectionTitle {
+      margin: 12px 0 6px;
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,.58);
+      text-transform: uppercase;
+    }
 
     input, select {
       width: 100%;
@@ -273,14 +310,6 @@
     input::placeholder { color: rgba(255,255,255,.45); }
 
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    .sectionTitle {
-      margin: 10px 0 6px;
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-      color: rgba(255,255,255,.58);
-      text-transform: uppercase;
-    }
 
     .exerciseRow {
       display: grid;
@@ -327,7 +356,7 @@
       color: var(--text);
       border-radius: 12px;
       padding: 10px 12px;
-      font-weight: 750;
+      font-weight: 800;
       cursor: pointer;
       letter-spacing: .2px;
     }
@@ -337,11 +366,9 @@
       border-color: rgba(200,29,37,.55);
     }
 
-    .btn.primary:hover { filter: brightness(1.12); }
-
     /* Data views */
     .dataWrap {
-      padding: 16px;
+      padding: 14px;
       display: none;
       overflow: auto;
       height: 100%;
@@ -398,11 +425,16 @@
       font-size: 0.9rem;
       color: rgba(255,255,255,.85);
     }
-    th { color: rgba(255,255,255,.58); font-weight: 700; }
+    th { color: rgba(255,255,255,.58); font-weight: 800; }
 
+    /* Phone tuning */
     @media (max-width: 900px) {
-      body { grid-template-columns: 1fr; }
+      body { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
       aside { height: auto; }
+      .day { min-height: 72px; padding: 6px; }
+      .weekday { padding: 7px 8px; font-size: 0.72rem; }
+      .day .mini { display: none; }
+      header { position: sticky; top: 0; z-index: 10; }
     }
   </style>
 </head>
@@ -410,22 +442,8 @@
 
 <aside>
   <div class="brand">
-    <!-- Tough placeholder logo (inline SVG). Replace with generated bear image later. -->
-    <svg width="40" height="40" viewBox="0 0 64 64" aria-label="Iron Gate Logo" role="img">
-      <defs>
-        <linearGradient id="g" x1="0" x2="1">
-          <stop offset="0" stop-color="#c81d25" />
-          <stop offset="1" stop-color="#ff4d57" />
-        </linearGradient>
-      </defs>
-      <path fill="url(#g)" d="M32 4c7 0 13 6 13 13v2c4 2 7 6 7 11v9c0 12-10 21-20 21S12 51 12 39v-9c0-5 3-9 7-11v-2C19 10 25 4 32 4z" opacity=".92"/>
-      <path fill="#0b0f14" d="M22 31c3-2 6-3 10-3s7 1 10 3v6c-3 2-6 3-10 3s-7-1-10-3v-6z" opacity=".9"/>
-      <path fill="#f1f5f9" d="M24 30c-2 0-3-1-3-3 0-1 1-2 2-2 2 0 3 1 3 3 0 1-1 2-2 2zm16 0c-2 0-3-1-3-3 0-1 1-2 2-2 2 0 3 1 3 3 0 1-1 2-2 2z"/>
-      <path fill="#f1f5f9" d="M28 44h8c0 3-2 6-4 6s-4-3-4-6z" opacity=".9"/>
-      <path fill="#cbd5e1" d="M6 22h10v6H6zm42 0h10v6H48z"/>
-      <path fill="#94a3b8" d="M2 20h6v10H2zm56 20h6v10h-6z"/>
-      <path fill="#cbd5e1" d="M48 42h10v6H48z"/>
-    </svg>
+    <!-- Replace this with your new logo file name. Put your logo in the repo and set src below. -->
+    <img id="brandLogo" src="logo.png" alt="Iron Gate logo" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)" onerror="this.style.display='none'" />
     <h2>Iron Gate</h2>
     <span class="badge">RUGGED</span>
   </div>
@@ -460,13 +478,71 @@
 </aside>
 
 <main>
-  <header id="header"></header>
+  <header>
+    <div class="headLeft">
+      <button id="backBtn" class="hbtn" style="display:none" onclick="closeEditor()">Back</button>
+      <div class="headTitle" id="headerTitle">—</div>
+    </div>
+    <div class="headRight" id="headerControls">
+      <button class="hbtn" onclick="goToday()">Today</button>
+      <button class="hbtn" onclick="prevPeriod()">◀</button>
+      <button class="hbtn" onclick="nextPeriod()">▶</button>
+    </div>
+  </header>
 
   <div class="content">
     <!-- Calendar view -->
-    <div id="calendarView" style="min-height:0; display:block;">
+    <div id="calendarView" class="calendarWrap" style="display:block;">
       <div class="weekdayRow" id="weekdayRow"></div>
       <div class="calendar" id="calendar"></div>
+    </div>
+
+    <!-- Editor "page" -->
+    <div id="editorView" class="editorView">
+      <div class="editorCard">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:900;font-size:1.1rem;" id="editorDateTitle">—</div>
+            <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:4px;">Everything saves to your device automatically.</div>
+          </div>
+          <div class="actions" style="margin-top:0;">
+            <button class="btn primary" onclick="saveDay()">Save</button>
+            <button class="btn" onclick="clearDay()">Clear</button>
+          </div>
+        </div>
+
+        <div class="sectionTitle">Workouts</div>
+        <div id="workoutRows"></div>
+        <div class="actions">
+          <button class="btn" onclick="addWorkoutRow()">+ Add Exercise</button>
+        </div>
+
+        <div class="sectionTitle">Body Measurements</div>
+        <div class="row">
+          <input id="bodyweight" placeholder="Body Weight" inputmode="decimal" />
+          <input id="rbicep" placeholder="Right Bicep" inputmode="decimal" />
+        </div>
+        <div class="row">
+          <input id="lbicep" placeholder="Left Bicep" inputmode="decimal" />
+          <input id="rcalf" placeholder="Right Calf" inputmode="decimal" />
+        </div>
+        <input id="lcalf" placeholder="Left Calf" inputmode="decimal" />
+
+        <div class="sectionTitle">Diet & Recovery</div>
+        <div class="row">
+          <input id="protein" placeholder="Protein (g)" inputmode="numeric" />
+          <input id="calories" placeholder="Calories" inputmode="numeric" />
+        </div>
+        <div class="row">
+          <input id="water" placeholder="Water (cups)" inputmode="decimal" />
+          <input id="sleep" placeholder="Sleep (hrs)" inputmode="decimal" />
+        </div>
+        <select id="stool">
+          <option value="">Bowel Movement?</option>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+      </div>
     </div>
 
     <!-- Data view -->
@@ -475,8 +551,8 @@
         <div class="card">
           <h3>Top Lifts</h3>
           <div class="kpi">
-            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Volume</div><div id="topVolume" style="font-weight:800; font-size:1.05rem; margin-top:6px;">—</div><div id="topVolumeSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
-            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Max Weight</div><div id="topMax" style="font-weight:800; font-size:1.05rem; margin-top:6px;">—</div><div id="topMaxSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
+            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Volume</div><div id="topVolume" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div><div id="topVolumeSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
+            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Max Weight</div><div id="topMax" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div><div id="topMaxSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
           </div>
         </div>
 
@@ -497,9 +573,9 @@
 
       <div id="dataHealth" style="display:none">
         <div class="card">
-          <h3>Most Recent Health</h3>
-          <div id="healthMostRecent" style="color:rgba(255,255,255,.8)">—</div>
-          <div id="healthMostRecentDate" style="color:rgba(255,255,255,.55); margin-top:6px;">—</div>
+          <h3>Averages</h3>
+          <div id="healthAverages" style="color:rgba(255,255,255,.85)">—</div>
+          <div id="healthAveragesSub" style="color:rgba(255,255,255,.55); margin-top:6px;">—</div>
         </div>
 
         <div class="card">
@@ -514,53 +590,6 @@
             <tbody id="healthDetailTable"></tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- Panel (day details) -->
-    <div class="panel" id="panel">
-      <div class="panelHeader">
-        <div>
-          <h3 id="panelDate">—</h3>
-          <div class="hint">Add exercises and health metrics. Everything saves automatically to your device.</div>
-        </div>
-      </div>
-
-      <div class="sectionTitle">Workouts</div>
-      <div id="workoutRows"></div>
-      <div class="actions">
-        <button class="btn" onclick="addWorkoutRow()">+ Add Exercise</button>
-      </div>
-
-      <div class="sectionTitle">Body Measurements</div>
-      <div class="row">
-        <input id="bodyweight" placeholder="Body Weight" inputmode="decimal" />
-        <input id="rbicep" placeholder="Right Bicep" inputmode="decimal" />
-      </div>
-      <div class="row">
-        <input id="lbicep" placeholder="Left Bicep" inputmode="decimal" />
-        <input id="rcalf" placeholder="Right Calf" inputmode="decimal" />
-      </div>
-      <input id="lcalf" placeholder="Left Calf" inputmode="decimal" />
-
-      <div class="sectionTitle">Diet & Recovery</div>
-      <div class="row">
-        <input id="protein" placeholder="Protein (g)" inputmode="numeric" />
-        <input id="calories" placeholder="Calories" inputmode="numeric" />
-      </div>
-      <div class="row">
-        <input id="water" placeholder="Water" inputmode="decimal" />
-        <input id="sleep" placeholder="Sleep (hrs)" inputmode="decimal" />
-      </div>
-      <select id="stool">
-        <option value="">Stool Pass?</option>
-        <option>Yes</option>
-        <option>No</option>
-      </select>
-
-      <div class="actions">
-        <button class="btn primary" onclick="saveDay()">Save Day</button>
-        <button class="btn" onclick="clearDay()">Clear Day</button>
       </div>
     </div>
   </div>
@@ -582,16 +611,19 @@
   // --------------------
   const calendar = document.getElementById('calendar');
   const weekdayRow = document.getElementById('weekdayRow');
-  const panel = document.getElementById('panel');
-  const panelDate = document.getElementById('panelDate');
-  const header = document.getElementById('header');
 
   const filesList = document.getElementById('filesList');
 
   const calendarView = document.getElementById('calendarView');
+  const editorView = document.getElementById('editorView');
   const dataView = document.getElementById('dataView');
   const calendarControls = document.getElementById('calendarControls');
   const dataControls = document.getElementById('dataControls');
+
+  const headerTitle = document.getElementById('headerTitle');
+  const headerControls = document.getElementById('headerControls');
+  const backBtn = document.getElementById('backBtn');
+  const editorDateTitle = document.getElementById('editorDateTitle');
 
   const dataExercises = document.getElementById('dataExercises');
   const dataHealth = document.getElementById('dataHealth');
@@ -607,8 +639,8 @@
   const topMax = document.getElementById('topMax');
   const topMaxSub = document.getElementById('topMaxSub');
 
-  const healthMostRecent = document.getElementById('healthMostRecent');
-  const healthMostRecentDate = document.getElementById('healthMostRecentDate');
+  const healthAverages = document.getElementById('healthAverages');
+  const healthAveragesSub = document.getElementById('healthAveragesSub');
   const healthMetricList = document.getElementById('healthMetricList');
   const healthDetailCard = document.getElementById('healthDetailCard');
   const healthDetailTitle = document.getElementById('healthDetailTitle');
@@ -652,10 +684,7 @@
       const parsed = JSON.parse(raw);
       // Migration: old flat structure -> new structure
       if (parsed && !parsed.workouts && !parsed.health) {
-        return {
-          workouts: [],
-          health: parsed
-        };
+        return { workouts: [], health: parsed };
       }
       return {
         workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
@@ -668,6 +697,10 @@
 
   function saveEntry(key, entry) {
     localStorage.setItem(key, JSON.stringify(entry));
+  }
+
+  function fmtMonthYear(d) {
+    return d.toLocaleString('default', { month: 'long', year: 'numeric' });
   }
 
   function weekdaysHeader() {
@@ -686,21 +719,27 @@
   // --------------------
   function setMode(next, btn) {
     mode = next;
-    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+
+    // Only toggle active for Mode buttons
+    document.getElementById('modeCalendar').classList.toggle('active', next === 'calendar');
+    document.getElementById('modeData').classList.toggle('active', next === 'data');
 
     if (mode === 'calendar') {
       calendarControls.style.display = 'block';
       dataControls.style.display = 'none';
       dataView.style.display = 'none';
-      calendarView.style.display = 'block';
-      panel.style.display = 'none';
+      calendarView.style.display = 'grid';
+      editorView.style.display = 'none';
+      backBtn.style.display = 'none';
+      headerControls.style.display = 'flex';
       renderCalendar();
     } else {
       calendarControls.style.display = 'none';
       dataControls.style.display = 'block';
       calendarView.style.display = 'none';
-      panel.style.display = 'none';
+      editorView.style.display = 'none';
+      backBtn.style.display = 'none';
+      headerControls.style.display = 'none';
       dataView.style.display = 'block';
       renderData();
     }
@@ -708,16 +747,47 @@
 
   function setDataTab(tab, btn) {
     dataTab = tab;
-    document.querySelectorAll('#dataControls .nav button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    document.getElementById('dataExercisesBtn').classList.toggle('active', tab === 'exercises');
+    document.getElementById('dataHealthBtn').classList.toggle('active', tab === 'health');
     renderData();
   }
 
   function setView(v, btn) {
     view = v;
-    document.querySelectorAll('#calendarControls .nav button').forEach(b => b.classList.remove('active'));
+    // Toggle active only for calendar view buttons
+    const viewBtns = Array.from(document.querySelectorAll('#calendarControls .nav button'));
+    viewBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    // Always anchor around the real current day unless user clicked another day
+    renderCalendar();
+  }
+
+  // --------------------
+  // Header Controls (month/week/day navigation)
+  // --------------------
+  function goToday() {
+    selectedDate = new Date();
+    renderCalendar();
+  }
+
+  function prevPeriod() {
+    if (view === 'month') {
+      selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
+    } else if (view === 'week') {
+      const d = new Date(selectedDate); d.setDate(d.getDate() - 7); selectedDate = d;
+    } else {
+      const d = new Date(selectedDate); d.setDate(d.getDate() - 1); selectedDate = d;
+    }
+    renderCalendar();
+  }
+
+  function nextPeriod() {
+    if (view === 'month') {
+      selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1);
+    } else if (view === 'week') {
+      const d = new Date(selectedDate); d.setDate(d.getDate() + 7); selectedDate = d;
+    } else {
+      const d = new Date(selectedDate); d.setDate(d.getDate() + 1); selectedDate = d;
+    }
     renderCalendar();
   }
 
@@ -727,7 +797,19 @@
   function renderCalendar() {
     weekdaysHeader();
     calendar.innerHTML = '';
-    header.textContent = '';
+
+    // Title: month/week/day text outside the cells (no small date inside cells)
+    if (view === 'month') {
+      headerTitle.textContent = fmtMonthYear(selectedDate);
+    } else if (view === 'week') {
+      const start = new Date(selectedDate);
+      start.setDate(start.getDate() - start.getDay());
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      headerTitle.textContent = `Week: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+    } else {
+      headerTitle.textContent = selectedDate.toDateString();
+    }
 
     if (view === 'month') renderMonth();
     if (view === 'week') renderWeek();
@@ -739,7 +821,6 @@
   function renderMonth() {
     const y = selectedDate.getFullYear();
     const m = selectedDate.getMonth();
-    header.textContent = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
     const first = new Date(y, m, 1);
     const last = new Date(y, m + 1, 0);
@@ -754,7 +835,6 @@
   function renderWeek() {
     const start = new Date(selectedDate);
     start.setDate(start.getDate() - start.getDay());
-    header.textContent = `Week of ${start.toLocaleDateString()}`;
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(start);
@@ -764,7 +844,6 @@
   }
 
   function renderDay() {
-    header.textContent = selectedDate.toDateString();
     addDayCell(selectedDate);
   }
 
@@ -776,48 +855,56 @@
     const entry = loadEntry(key);
 
     let mini = '';
-    if (entry && entry.workouts && entry.workouts.length) {
+    if (entry && entry.workouts && entry.workouts.length && view !== 'month') {
       const count = entry.workouts.length;
       const totalSets = entry.workouts.reduce((s,w)=> s + safeNum(w.sets), 0);
       const totalReps = entry.workouts.reduce((s,w)=> s + safeNum(w.reps), 0);
       mini = `<div class="mini"><span class="chip">${count} lifts</span><span class="chip">${totalSets} sets</span><span class="chip">${totalReps} reps</span></div>`;
     }
 
-    cell.innerHTML = `<strong>${date.getDate()}</strong><br/><small>${date.toLocaleDateString()}</small>${mini}`;
+    // Only show the day number inside the cell
+    cell.innerHTML = `<strong>${date.getDate()}</strong>${mini}`;
 
     if (date.toDateString() === new Date().toDateString()) cell.classList.add('today');
 
-    cell.onclick = () => openDay(date, cell);
+    cell.onclick = () => openEditor(date, cell);
     calendar.appendChild(cell);
 
-    // Move selection box to selected day in all views
-    if (date.toDateString() === selectedDate.toDateString() && view !== 'month') {
+    // Selection highlight in day/week/month
+    if (date.toDateString() === selectedDate.toDateString()) {
       if (selectedCell) selectedCell.classList.remove('selected');
       selectedCell = cell;
       cell.classList.add('selected');
     }
   }
 
-  function openDay(date, cell) {
+  // --------------------
+  // Editor "page"
+  // --------------------
+  function openEditor(date, cell) {
     if (selectedCell) selectedCell.classList.remove('selected');
     selectedCell = cell;
     cell.classList.add('selected');
 
     selectedDate = date;
 
+    // Switch to editor view
+    calendarView.style.display = 'none';
+    dataView.style.display = 'none';
+    editorView.style.display = 'block';
+    backBtn.style.display = 'inline-flex';
+    headerControls.style.display = 'none';
+
+    editorDateTitle.textContent = date.toDateString();
+    headerTitle.textContent = date.toDateString();
+
     const key = dateKey(date);
     const entry = loadEntry(key) || { workouts: [], health: {} };
 
-    panel.style.display = 'block';
-    panelDate.textContent = date.toDateString();
-
     // Render workouts
     workoutRows.innerHTML = '';
-    if (entry.workouts.length) {
-      entry.workouts.forEach(w => addWorkoutRow(w));
-    } else {
-      addWorkoutRow();
-    }
+    if (entry.workouts.length) entry.workouts.forEach(w => addWorkoutRow(w));
+    else addWorkoutRow();
 
     // Health
     const healthFields = ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'];
@@ -826,6 +913,14 @@
       if (!el) return;
       el.value = entry.health?.[id] ?? '';
     });
+  }
+
+  function closeEditor() {
+    editorView.style.display = 'none';
+    backBtn.style.display = 'none';
+    headerControls.style.display = 'flex';
+    calendarView.style.display = 'grid';
+    renderCalendar();
   }
 
   // --------------------
@@ -863,9 +958,7 @@
     del.className = 'iconBtn';
     del.textContent = '×';
     del.title = 'Remove';
-    del.onclick = () => {
-      row.remove();
-    };
+    del.onclick = () => row.remove();
 
     row.appendChild(sel);
     row.appendChild(sets);
@@ -890,7 +983,6 @@
         reps: reps.value,
         weight: weight.value
       };
-      // Only save if something meaningful entered
       if (w.exercise && (w.sets || w.reps || w.weight)) workouts.push(w);
     });
 
@@ -902,16 +994,24 @@
 
     saveEntry(key, { workouts, health });
 
-    // Refresh calendar cells + sidebar + data
-    renderCalendar();
+    // Refresh sidebar lists / data
+    loadFiles();
     if (mode === 'data') renderData();
   }
 
   function clearDay() {
     const key = dateKey(selectedDate);
     localStorage.removeItem(key);
-    panel.style.display = 'none';
-    renderCalendar();
+
+    // Clear UI
+    workoutRows.innerHTML = '';
+    addWorkoutRow();
+    ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+    loadFiles();
     if (mode === 'data') renderData();
   }
 
@@ -930,14 +1030,13 @@
       return;
     }
 
-    // Show most recent first
     keys.slice().reverse().forEach(k => {
       const entry = loadEntry(k);
       const div = document.createElement('div');
       div.className = 'item';
 
       const left = document.createElement('div');
-      left.innerHTML = `<div style="color:rgba(255,255,255,.85); font-weight:700;">${k}</div>`;
+      left.innerHTML = `<div style="color:rgba(255,255,255,.85); font-weight:800;">${k}</div>`;
 
       let meta = '';
       if (entry?.workouts?.length) {
@@ -960,20 +1059,12 @@
 
       div.onclick = () => {
         selectedDate = new Date(k + 'T12:00:00');
-        setMode('calendar', document.getElementById('modeCalendar'));
-        // For saved days jump to day view
-        document.querySelectorAll('#calendarControls .nav button').forEach(b => b.classList.remove('active'));
-        const dayBtn = Array.from(document.querySelectorAll('#calendarControls .nav button')).find(b => b.textContent.trim() === 'Day');
-        if (dayBtn) {
-          view = 'day';
-          dayBtn.classList.add('active');
-        }
+        // Open editor directly
+        if (mode !== 'calendar') setMode('calendar', document.getElementById('modeCalendar'));
+        // ensure month view shows selected month
         renderCalendar();
-        // Open the day details automatically
-        setTimeout(() => {
-          const cell = calendar.querySelector('.day');
-          if (cell) openDay(selectedDate, cell);
-        }, 0);
+        // open editor (no need to find exact cell)
+        openEditor(selectedDate, (selectedCell || document.createElement('div')));
       };
 
       filesList.appendChild(div);
@@ -984,7 +1075,7 @@
   // Aggregation for Data Tab
   // --------------------
   function aggregate() {
-    const agg = {}; // ex -> {sets,reps,maxWeight, history:[]}
+    const agg = {};
     EXERCISES.forEach(e => agg[e] = { sets: 0, reps: 0, maxWeight: 0, history: [] });
 
     const healthSeries = {
@@ -1022,14 +1113,14 @@
   }
 
   function renderData() {
-    header.textContent = dataTab === 'exercises' ? 'Data · Exercises' : 'Data · Health';
+    headerTitle.textContent = dataTab === 'exercises' ? 'Data · Exercises' : 'Data · Health';
 
     dataExercises.style.display = dataTab === 'exercises' ? 'block' : 'none';
     dataHealth.style.display = dataTab === 'health' ? 'block' : 'none';
 
     const { agg, healthSeries } = aggregate();
 
-    // Exercises list
+    // Exercises
     if (dataTab === 'exercises') {
       exerciseDetailCard.style.display = 'none';
       exerciseList.innerHTML = '';
@@ -1047,7 +1138,7 @@
         row.className = 'rowItem';
         row.innerHTML = `
           <div>
-            <div style="font-weight:850;">${name}</div>
+            <div style="font-weight:900;">${name}</div>
             <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:2px;">${a.sets} sets · ${a.reps} reps · max ${a.maxWeight || 0}</div>
           </div>
           <div style="color:rgba(255,255,255,.55); font-weight:900;">›</div>
@@ -1067,35 +1158,25 @@
     if (dataTab === 'health') {
       healthDetailCard.style.display = 'none';
 
-      // Most recent day with any health info
-      const keys = getAllDateKeys();
-      let latestKey = null;
-      for (let i = keys.length - 1; i >= 0; i--) {
-        const entry = loadEntry(keys[i]);
-        if (entry && entry.health && Object.values(entry.health).some(v => String(v || '').length)) {
-          latestKey = keys[i];
-          break;
-        }
-      }
+      // Average water + sleep across all saved days where values are numeric
+      const waterVals = (healthSeries.water || []).map(x => safeNum(x.value)).filter(n => n > 0);
+      const sleepVals = (healthSeries.sleep || []).map(x => safeNum(x.value)).filter(n => n > 0);
 
-      if (!latestKey) {
-        healthMostRecent.textContent = 'No health data saved yet.';
-        healthMostRecentDate.textContent = '—';
-      } else {
-        const entry = loadEntry(latestKey);
-        const h = entry.health || {};
-        healthMostRecentDate.textContent = `Most recent: ${latestKey}`;
-        healthMostRecent.innerHTML = `
-          <div style="display:grid; gap:6px; margin-top:8px;">
-            <div><strong>Body Weight:</strong> ${h.bodyweight || '—'}</div>
-            <div><strong>Right Bicep:</strong> ${h.rbicep || '—'} · <strong>Left Bicep:</strong> ${h.lbicep || '—'}</div>
-            <div><strong>Right Calf:</strong> ${h.rcalf || '—'} · <strong>Left Calf:</strong> ${h.lcalf || '—'}</div>
-            <div><strong>Protein:</strong> ${h.protein || '—'} · <strong>Calories:</strong> ${h.calories || '—'}</div>
-            <div><strong>Water:</strong> ${h.water || '—'} · <strong>Sleep:</strong> ${h.sleep || '—'}</div>
-            <div><strong>Stool Pass:</strong> ${h.stool || '—'}</div>
-          </div>
-        `;
-      }
+      const avg = arr => arr.length ? (arr.reduce((s,n)=>s+n,0) / arr.length) : 0;
+      const avgWater = avg(waterVals);
+      const avgSleep = avg(sleepVals);
+
+      const daysCount = getAllDateKeys().length;
+      const waterDays = waterVals.length;
+      const sleepDays = sleepVals.length;
+
+      healthAverages.innerHTML = `
+        <div style="display:grid; gap:8px; margin-top:8px;">
+          <div><strong>Avg Water:</strong> ${avgWater ? avgWater.toFixed(1) : '—'} cups</div>
+          <div><strong>Avg Sleep:</strong> ${avgSleep ? avgSleep.toFixed(1) : '—'} hrs</div>
+        </div>
+      `;
+      healthAveragesSub.textContent = `Based on ${daysCount} saved day(s). Water entries: ${waterDays}. Sleep entries: ${sleepDays}.`;
 
       const METRICS = [
         ['bodyweight','Body Weight'],
@@ -1103,11 +1184,11 @@
         ['lbicep','Left Bicep Measurement'],
         ['rcalf','Right Calf Measurement'],
         ['lcalf','Left Calf Measurement'],
-        ['protein','Protein'],
+        ['protein','Protein (g)'],
         ['calories','Calories'],
-        ['water','Water'],
-        ['sleep','Sleep'],
-        ['stool','Stool Pass']
+        ['water','Water (cups)'],
+        ['sleep','Sleep (hrs)'],
+        ['stool','Bowel Movement']
       ];
 
       healthMetricList.innerHTML = '';
@@ -1118,7 +1199,7 @@
         row.className = 'rowItem';
         row.innerHTML = `
           <div>
-            <div style="font-weight:850;">${label}</div>
+            <div style="font-weight:900;">${label}</div>
             <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:2px;">Latest: ${last ? last.value : '—'} ${last ? `(${last.date})` : ''}</div>
           </div>
           <div style="color:rgba(255,255,255,.55); font-weight:900;">›</div>
@@ -1178,10 +1259,10 @@
   // Init
   // --------------------
   function init() {
-    // Start anchored to TODAY
     selectedDate = new Date();
     weekdaysHeader();
     renderCalendar();
+    loadFiles();
   }
 
   init();
@@ -1189,4 +1270,3 @@
 
 </body>
 </html>
-
