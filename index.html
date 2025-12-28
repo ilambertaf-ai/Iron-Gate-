@@ -3,98 +3,140 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iron-Gate Calendar</title>
+  <title>Iron-Gate</title>
 
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Iron-Gate" />
 
   <style>
+    :root {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --border: #e5e7eb;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #16a34a;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
-      background: #0f172a;
-      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      height: 100vh;
+    }
+
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    aside h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .nav button {
+      width: 100%;
+      background: transparent;
+      border: none;
+      text-align: left;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .nav button.active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .files {
+      font-size: 0.85rem;
+      color: var(--muted);
+      overflow-y: auto;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
     }
 
     header {
       padding: 1rem;
-      text-align: center;
-      background: #020617;
+      border-bottom: 1px solid var(--border);
       font-weight: 600;
     }
 
-    .toolbar {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      padding: 8px;
-      background: #020617;
-    }
-
-    .toolbar button {
-      background: #1e293b;
-      color: #e5e7eb;
-      border: none;
-      border-radius: 8px;
-      padding: 6px 12px;
-      cursor: pointer;
-    }
-
-    .toolbar button.active {
-      background: #22c55e;
-      color: #020617;
-    }
-
     .calendar {
+      flex: 1;
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-      padding: 8px;
+      gap: 1px;
+      background: var(--border);
     }
 
     .day {
-      background: #020617;
-      border-radius: 10px;
-      padding: 6px;
-      min-height: 90px;
-      font-size: 0.75rem;
+      background: var(--panel);
+      padding: 8px;
+      min-height: 110px;
       cursor: pointer;
+      position: relative;
     }
 
-    .day.today {
-      outline: 2px solid #22c55e;
+    .day.today::after {
+      content: '';
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .day.selected {
+      outline: 2px solid var(--accent);
+      z-index: 2;
+    }
+
+    .day small {
+      color: var(--muted);
     }
 
     .panel {
+      border-top: 1px solid var(--border);
+      background: var(--panel);
       padding: 1rem;
-      border-top: 1px solid #1e293b;
+      display: none;
     }
 
-    .panel h3 {
-      margin-top: 0;
-    }
+    .panel h3 { margin-top: 0; }
 
     input, select {
       width: 100%;
-      margin: 6px 0;
-      padding: 6px;
+      padding: 8px;
+      margin: 4px 0 10px;
+      border: 1px solid var(--border);
       border-radius: 6px;
-      border: none;
+      font-size: 0.9rem;
     }
 
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-    button.save {
-      margin-top: 10px;
-      background: #22c55e;
-      color: #020617;
+    .save {
+      background: var(--accent);
+      color: white;
       border: none;
       border-radius: 8px;
-      padding: 8px;
+      padding: 10px;
       font-weight: 600;
       cursor: pointer;
     }
@@ -102,111 +144,154 @@
 </head>
 <body>
 
-<header>Iron-Gate Fitness Calendar</header>
-
-<div class="toolbar">
-  <button class="active">Month</button>
-  <button disabled>7 Day</button>
-  <button disabled>Day</button>
-</div>
-
-<div class="calendar" id="calendar"></div>
-
-<div class="panel" id="panel" style="display:none">
-  <h3 id="panelDate"></h3>
-
-  <h4>Workout</h4>
-  <input id="exercise" placeholder="Exercise Type" />
-  <div class="row">
-    <input id="sets" type="number" placeholder="Sets" />
-    <input id="reps" type="number" placeholder="Reps" />
+<aside>
+  <h2>Iron-Gate</h2>
+  <div class="nav">
+    <button class="active" onclick="setView('month', this)">Month</button>
+    <button onclick="setView('week', this)">7 Day</button>
+    <button onclick="setView('day', this)">Day</button>
   </div>
-  <input id="weight" type="number" placeholder="Weight" />
 
-  <h4>Body Metrics</h4>
-  <div class="row">
-    <input id="bodyweight" placeholder="Body Weight" />
-    <input id="rbicep" placeholder="Right Bicep" />
+  <div class="files" id="files">
+    <strong>Saved Days</strong><br/>
   </div>
-  <div class="row">
-    <input id="lbicep" placeholder="Left Bicep" />
-    <input id="rcalf" placeholder="Right Calf" />
-  </div>
-  <input id="lcalf" placeholder="Left Calf" />
+</aside>
 
-  <h4>Diet & Recovery</h4>
-  <div class="row">
-    <input id="protein" placeholder="Protein (g)" />
-    <input id="calories" placeholder="Calories" />
-  </div>
-  <div class="row">
-    <input id="water" placeholder="Water" />
-    <input id="sleep" placeholder="Sleep (hrs)" />
-  </div>
-  <select id="stool">
-    <option value="">Stool Pass?</option>
-    <option>Yes</option>
-    <option>No</option>
-  </select>
+<main>
+  <header id="header"></header>
+  <div class="calendar" id="calendar"></div>
 
-  <button class="save" onclick="saveDay()">Save Day</button>
-</div>
+  <div class="panel" id="panel">
+    <h3 id="panelDate"></h3>
+
+    <input id="exercise" placeholder="Exercise" />
+    <div class="row">
+      <input id="sets" placeholder="Sets" />
+      <input id="reps" placeholder="Reps" />
+    </div>
+    <input id="weight" placeholder="Weight" />
+
+    <h4>Body & Recovery</h4>
+    <div class="row">
+      <input id="bodyweight" placeholder="Body Weight" />
+      <input id="sleep" placeholder="Sleep (hrs)" />
+    </div>
+    <select id="stool">
+      <option value="">Stool Pass?</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+
+    <button class="save" onclick="saveDay()">Save</button>
+  </div>
+</main>
 
 <script>
   const calendar = document.getElementById('calendar');
   const panel = document.getElementById('panel');
   const panelDate = document.getElementById('panelDate');
-  let selectedDate = null;
+  const header = document.getElementById('header');
+  const files = document.getElementById('files');
 
-  function loadMonth() {
+  let view = 'month';
+  let selectedCell = null;
+  let selectedDate = new Date();
+
+  function setView(v, btn) {
+    view = v;
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  function render() {
     calendar.innerHTML = '';
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const first = new Date(year, month, 1);
-    const last = new Date(year, month + 1, 0);
+    panel.style.display = 'none';
+    header.textContent = selectedDate.toDateString();
 
-    for (let i = 0; i < first.getDay(); i++) {
-      calendar.appendChild(document.createElement('div'));
-    }
+    if (view === 'month') renderMonth();
+    if (view === 'week') renderWeek();
+    if (view === 'day') renderDay();
+
+    loadFiles();
+  }
+
+  function renderMonth() {
+    const y = selectedDate.getFullYear();
+    const m = selectedDate.getMonth();
+    header.textContent = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m + 1, 0);
+
+    for (let i = 0; i < first.getDay(); i++) calendar.appendChild(document.createElement('div'));
 
     for (let d = 1; d <= last.getDate(); d++) {
-      const date = new Date(year, month, d);
-      const cell = document.createElement('div');
-      cell.className = 'day';
-      cell.textContent = d;
-
-      if (date.toDateString() === now.toDateString()) {
-        cell.classList.add('today');
-      }
-
-      cell.onclick = () => openDay(date);
-      calendar.appendChild(cell);
+      const date = new Date(y, m, d);
+      addDayCell(date);
     }
   }
 
-  function openDay(date) {
-    selectedDate = date.toISOString().split('T')[0];
+  function renderWeek() {
+    const start = new Date(selectedDate);
+    start.setDate(start.getDate() - start.getDay());
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      addDayCell(date);
+    }
+  }
+
+  function renderDay() {
+    addDayCell(selectedDate);
+  }
+
+  function addDayCell(date) {
+    const cell = document.createElement('div');
+    cell.className = 'day';
+    cell.innerHTML = `<strong>${date.getDate()}</strong><br/><small>${date.toLocaleDateString()}</small>`;
+
+    if (date.toDateString() === new Date().toDateString()) cell.classList.add('today');
+
+    cell.onclick = () => openDay(date, cell);
+    calendar.appendChild(cell);
+  }
+
+  function openDay(date, cell) {
+    if (selectedCell) selectedCell.classList.remove('selected');
+    selectedCell = cell;
+    cell.classList.add('selected');
+
+    selectedDate = date;
     panel.style.display = 'block';
     panelDate.textContent = date.toDateString();
 
-    const data = JSON.parse(localStorage.getItem(selectedDate)) || {};
-    for (const id in data) {
-      const el = document.getElementById(id);
-      if (el) el.value = data[id];
-    }
+    const key = date.toISOString().split('T')[0];
+    const data = JSON.parse(localStorage.getItem(key)) || {};
+    panel.querySelectorAll('input, select').forEach(el => el.value = data[el.id] || '');
   }
 
   function saveDay() {
-    if (!selectedDate) return;
-    const inputs = panel.querySelectorAll('input, select');
+    const key = selectedDate.toISOString().split('T')[0];
     const data = {};
-    inputs.forEach(i => data[i.id] = i.value);
-    localStorage.setItem(selectedDate, JSON.stringify(data));
-    alert('Saved');
+    panel.querySelectorAll('input, select').forEach(el => data[el.id] = el.value);
+    localStorage.setItem(key, JSON.stringify(data));
+    loadFiles();
   }
 
-  loadMonth();
+  function loadFiles() {
+    files.innerHTML = '<strong>Saved Days</strong><br/>';
+    Object.keys(localStorage).sort().forEach(k => {
+      if (k.match(/\d{4}-\d{2}-\d{2}/)) {
+        const div = document.createElement('div');
+        div.textContent = k;
+        files.appendChild(div);
+      }
+    });
+  }
+
+  render();
 </script>
 
 </body>
