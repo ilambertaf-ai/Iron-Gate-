@@ -742,14 +742,14 @@
 <main>
   <header>
     <div class="headLeft">
-      <button id="backBtn" class="hbtn" style="display:none" onclick="closeEditor()">Back</button>
+      <button id="mobileBack" class="hbtn" style="display:none" onclick="mobileBackToCalendar()">←</button>
       <div class="headTitle" id="headerTitle">—</div>
     </div>
     <div class="headRight" id="headerControls">
-      <button class="hbtn hamburger" onclick="toggleDrawer()" aria-label="Open menu">☰</button>
       <button class="hbtn" onclick="goToday()">Today</button>
       <button class="hbtn" onclick="prevPeriod()">◀</button>
       <button class="hbtn" onclick="nextPeriod()">▶</button>
+      <button class="hbtn" id="menuBtn" onclick="toggleDrawer()">☰</button>
     </div>
   </header>
 
@@ -1659,4 +1659,3 @@
 
 </body>
 </html>
-
