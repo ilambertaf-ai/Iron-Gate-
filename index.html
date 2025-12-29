@@ -9,6 +9,9 @@
   <meta name="apple-mobile-web-app-title" content="Iron-Gate" />
 
   <style>
+    /* ------------------------
+       THEME TOKENS
+       ------------------------ */
     :root {
       --bg: #0b0f14;
       --panel: #121824;
@@ -18,6 +21,22 @@
       --muted: #94a3b8;
       --accent: #c81d25;
       --shadow: 0 8px 24px rgba(0,0,0,.35);
+      --glass: rgba(18,24,36,.55);
+      --chipbg: rgba(255,255,255,.03);
+      --chipbd: rgba(255,255,255,.10);
+    }
+
+    html[data-theme="light"] {
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --panel2: #f7f9fe;
+      --border: #d8e0ee;
+      --text: #0b1020;
+      --muted: #4b5b75;
+      --shadow: 0 10px 26px rgba(15, 23, 42, .10);
+      --glass: rgba(255,255,255,.70);
+      --chipbg: rgba(11,16,32,.04);
+      --chipbd: rgba(11,16,32,.10);
     }
 
     * { box-sizing: border-box; }
@@ -25,21 +44,38 @@
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 20% -10%, rgba(200,29,37,.22), transparent 60%), var(--bg);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(200,29,37,.18), transparent 60%),
+        var(--bg);
       color: var(--text);
       display: grid;
       grid-template-columns: 280px 1fr;
       height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Mobile layout: hide sidebar with Menu button */
+    @media (max-width: 900px) {
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+      body.menuHidden aside { display: none; }
+      body.menuHidden main { flex: 1 1 auto; }
     }
 
     aside {
-      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
       border-right: 1px solid var(--border);
       padding: 1rem;
       display: flex;
       flex-direction: column;
       gap: 14px;
       min-height: 0;
+      overflow: auto;
     }
 
     .brand {
@@ -64,6 +100,12 @@
       border: 1px solid rgba(255,255,255,.16);
       padding: 3px 8px;
       border-radius: 999px;
+      background: rgba(0,0,0,.12);
+    }
+    html[data-theme="light"] .badge {
+      color: rgba(11,16,32,.75);
+      border-color: rgba(11,16,32,.18);
+      background: rgba(11,16,32,.05);
     }
 
     .navTitle {
@@ -73,6 +115,7 @@
       text-transform: uppercase;
       margin: 6px 0 2px;
     }
+    html[data-theme="light"] .navTitle { color: rgba(11,16,32,.55); }
 
     .nav button {
       width: 100%;
@@ -90,6 +133,10 @@
     .nav button:hover {
       border-color: rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
+    }
+    html[data-theme="light"] .nav button:hover {
+      border-color: rgba(11,16,32,.12);
+      background: rgba(11,16,32,.04);
     }
 
     .nav button.active {
@@ -119,19 +166,29 @@
       background: rgba(255,255,255,.02);
       border: 1px solid rgba(255,255,255,.06);
     }
+    html[data-theme="light"] .files .item {
+      background: rgba(11,16,32,.02);
+      border-color: rgba(11,16,32,.08);
+    }
 
     .files .item:hover {
       background: rgba(255,255,255,.04);
       border-color: rgba(255,255,255,.10);
     }
+    html[data-theme="light"] .files .item:hover {
+      background: rgba(11,16,32,.04);
+      border-color: rgba(11,16,32,.12);
+    }
 
     .files .item small { color: rgba(255,255,255,.55); }
+    html[data-theme="light"] .files .item small { color: rgba(11,16,32,.55); }
 
     main {
       display: flex;
       flex-direction: column;
       min-width: 0;
       min-height: 0;
+      overflow: hidden;
     }
 
     header {
@@ -139,12 +196,15 @@
       border-bottom: 1px solid var(--border);
       font-weight: 750;
       letter-spacing: .3px;
-      background: rgba(18,24,36,.55);
+      background: var(--glass);
       backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .headLeft {
@@ -165,6 +225,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex: 0 0 auto;
     }
 
     .hbtn {
@@ -175,6 +236,10 @@
       padding: 8px 10px;
       font-weight: 800;
       cursor: pointer;
+    }
+    html[data-theme="light"] .hbtn {
+      border-color: rgba(11,16,32,.14);
+      background: rgba(11,16,32,.04);
     }
 
     .hbtn.primary {
@@ -189,12 +254,14 @@
       grid-template-rows: 1fr;
       min-height: 0;
       height: 100%;
+      overflow: hidden;
     }
 
     .calendarWrap {
       display: grid;
       grid-template-rows: auto 1fr;
       min-height: 0;
+      overflow: hidden;
     }
 
     .calendar {
@@ -203,7 +270,9 @@
       gap: 1px;
       background: rgba(255,255,255,.06);
       min-height: 0;
+      overflow: hidden;
     }
+    html[data-theme="light"] .calendar { background: rgba(11,16,32,.08); }
 
     .weekdayRow {
       display: grid;
@@ -211,9 +280,10 @@
       gap: 1px;
       background: rgba(255,255,255,.06);
     }
+    html[data-theme="light"] .weekdayRow { background: rgba(11,16,32,.08); }
 
     .weekday {
-      background: rgba(18,24,36,.55);
+      background: var(--glass);
       padding: 8px 10px;
       color: rgba(255,255,255,.65);
       font-size: 0.75rem;
@@ -221,16 +291,21 @@
       letter-spacing: 1px;
       border-bottom: 1px solid rgba(255,255,255,.06);
     }
+    html[data-theme="light"] .weekday {
+      color: rgba(11,16,32,.62);
+      border-bottom-color: rgba(11,16,32,.08);
+    }
 
     .day {
-      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
       padding: 8px;
       min-height: 96px;
       cursor: pointer;
       position: relative;
+      overflow: hidden;
     }
 
-    .day:hover { filter: brightness(1.07); }
+    .day:hover { filter: brightness(1.06); }
 
     .day.today::after {
       content: '';
@@ -260,31 +335,36 @@
       flex-wrap: wrap;
       gap: 6px;
     }
+    html[data-theme="light"] .day .mini { color: rgba(11,16,32,.62); }
 
     .chip {
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
+      border: 1px solid var(--chipbd);
+      background: var(--chipbg);
       padding: 2px 7px;
       border-radius: 999px;
     }
 
-    /* Full-screen editor "page" */
+    /* Editor "page" */
     .editorView {
       display: none;
       height: 100%;
       overflow: auto;
       padding: 14px;
-      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
     }
 
     .editorCard {
       border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.15);
+      background: rgba(0,0,0,.10);
       border-radius: 16px;
       padding: 14px;
       box-shadow: var(--shadow);
       max-width: 980px;
       margin: 0 auto;
+    }
+    html[data-theme="light"] .editorCard {
+      border-color: rgba(11,16,32,.10);
+      background: rgba(255,255,255,.75);
     }
 
     .sectionTitle {
@@ -294,6 +374,7 @@
       color: rgba(255,255,255,.58);
       text-transform: uppercase;
     }
+    html[data-theme="light"] .sectionTitle { color: rgba(11,16,32,.55); }
 
     input, select {
       width: 100%;
@@ -301,13 +382,20 @@
       margin: 6px 0 10px;
       border: 1px solid rgba(255,255,255,.12);
       border-radius: 10px;
-      background: rgba(0,0,0,.18);
+      background: rgba(0,0,0,.14);
       color: var(--text);
       font-size: 0.95rem;
       outline: none;
     }
+    html[data-theme="light"] input,
+    html[data-theme="light"] select {
+      border-color: rgba(11,16,32,.14);
+      background: rgba(11,16,32,.04);
+      color: rgba(11,16,32,.92);
+    }
 
     input::placeholder { color: rgba(255,255,255,.45); }
+    html[data-theme="light"] input::placeholder { color: rgba(11,16,32,.45); }
 
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
@@ -322,6 +410,10 @@
       border: 1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.02);
     }
+    html[data-theme="light"] .exerciseRow {
+      border-color: rgba(11,16,32,.10);
+      background: rgba(11,16,32,.03);
+    }
 
     .exerciseRow select,
     .exerciseRow input {
@@ -335,10 +427,15 @@
       width: 38px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
+      background: rgba(0,0,0,.14);
       color: rgba(255,255,255,.85);
       cursor: pointer;
       font-weight: 800;
+    }
+    html[data-theme="light"] .iconBtn {
+      border-color: rgba(11,16,32,.14);
+      background: rgba(11,16,32,.04);
+      color: rgba(11,16,32,.85);
     }
 
     .iconBtn:hover { filter: brightness(1.1); }
@@ -360,6 +457,11 @@
       cursor: pointer;
       letter-spacing: .2px;
     }
+    html[data-theme="light"] .btn {
+      border-color: rgba(11,16,32,.14);
+      background: rgba(11,16,32,.04);
+      color: rgba(11,16,32,.92);
+    }
 
     .btn.primary {
       background: rgba(200,29,37,.16);
@@ -375,20 +477,18 @@
     }
 
     .card {
-      background: linear-gradient(180deg, rgba(18,24,36,1), rgba(15,21,32,1));
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
       border: 1px solid rgba(255,255,255,.10);
       border-radius: 16px;
       padding: 14px;
       box-shadow: var(--shadow);
       margin-bottom: 14px;
     }
+    html[data-theme="light"] .card { border-color: rgba(11,16,32,.10); }
 
     .card h3 { margin: 0 0 8px; }
 
-    .list {
-      display: grid;
-      gap: 8px;
-    }
+    .list { display: grid; gap: 8px; }
 
     .list .rowItem {
       display: flex;
@@ -401,8 +501,12 @@
       background: rgba(255,255,255,.02);
       cursor: pointer;
     }
+    html[data-theme="light"] .list .rowItem {
+      border-color: rgba(11,16,32,.10);
+      background: rgba(11,16,32,.03);
+    }
 
-    .list .rowItem:hover { filter: brightness(1.08); }
+    .list .rowItem:hover { filter: brightness(1.06); }
 
     .kpi {
       display: grid;
@@ -416,6 +520,10 @@
       border-radius: 14px;
       padding: 10px;
     }
+    html[data-theme="light"] .kpi .pill {
+      border-color: rgba(11,16,32,.10);
+      background: rgba(11,16,32,.03);
+    }
 
     table { width: 100%; border-collapse: collapse; }
     th, td {
@@ -425,16 +533,32 @@
       font-size: 0.9rem;
       color: rgba(255,255,255,.85);
     }
+    html[data-theme="light"] th, html[data-theme="light"] td {
+      border-bottom-color: rgba(11,16,32,.10);
+      color: rgba(11,16,32,.88);
+    }
     th { color: rgba(255,255,255,.58); font-weight: 800; }
+    html[data-theme="light"] th { color: rgba(11,16,32,.55); }
 
-    /* Phone tuning */
+    /* Phone tuning: make calendar fit better */
     @media (max-width: 900px) {
-      body { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
-      aside { height: auto; }
-      .day { min-height: 72px; padding: 6px; }
-      .weekday { padding: 7px 8px; font-size: 0.72rem; }
+      aside { padding: 10px; gap: 10px; }
+      .files { max-height: 22vh; }
+
+      header { padding: 10px 10px; }
+      .hbtn { padding: 7px 9px; border-radius: 11px; }
+
+      .weekday { padding: 6px 6px; font-size: 0.68rem; }
+
+      .day { min-height: 56px; padding: 6px; }
+      .day strong { font-size: 0.9rem; }
       .day .mini { display: none; }
-      header { position: sticky; top: 0; z-index: 10; }
+
+      /* Prevent inner calendar scroll on phone */
+      .calendar { overflow: hidden; }
+
+      .editorView { padding: 10px; }
+      .editorCard { padding: 12px; }
     }
   </style>
 </head>
@@ -442,24 +566,30 @@
 
 <aside>
   <div class="brand">
-    <!-- Replace this with your new logo file name. Put your logo in the repo and set src below. -->
-    <img id="brandLogo" src="logo.png" alt="Iron Gate logo" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)" onerror="this.style.display='none'" />
+    <img id="brandLogo" src="logo.png" alt="Iron Gate logo"
+      style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)"
+      onerror="this.style.display='none'" />
     <h2>Iron Gate</h2>
     <span class="badge">RUGGED</span>
   </div>
 
   <div class="navTitle">Mode</div>
   <div class="nav">
-    <button id="modeCalendar" class="active" onclick="setMode('calendar', this)">Calendar</button>
-    <button id="modeData" onclick="setMode('data', this)">Data</button>
+    <button id="modeCalendar" class="active" onclick="setMode('calendar')">Calendar</button>
+    <button id="modeData" onclick="setMode('data')">Data</button>
+  </div>
+
+  <div class="navTitle">Theme</div>
+  <div class="nav">
+    <button id="themeBtn" onclick="toggleTheme()">Light Mode</button>
   </div>
 
   <div id="calendarControls">
     <div class="navTitle">View</div>
     <div class="nav">
-      <button class="active" onclick="setView('month', this)">Month</button>
-      <button onclick="setView('week', this)">7 Day</button>
-      <button onclick="setView('day', this)">Day</button>
+      <button id="viewMonth" class="active" onclick="setView('month', this)">Month</button>
+      <button id="viewWeek" onclick="setView('week', this)">7 Day</button>
+      <button id="viewDay" onclick="setView('day', this)">Day</button>
     </div>
 
     <div class="files" id="files">
@@ -471,8 +601,8 @@
   <div id="dataControls" style="display:none">
     <div class="navTitle">Data</div>
     <div class="nav">
-      <button id="dataExercisesBtn" class="active" onclick="setDataTab('exercises', this)">Exercises</button>
-      <button id="dataHealthBtn" onclick="setDataTab('health', this)">Health</button>
+      <button id="dataExercisesBtn" class="active" onclick="setDataTab('exercises')">Exercises</button>
+      <button id="dataHealthBtn" onclick="setDataTab('health')">Health</button>
     </div>
   </div>
 </aside>
@@ -480,6 +610,7 @@
 <main>
   <header>
     <div class="headLeft">
+      <button id="menuBtn" class="hbtn" style="display:none" onclick="toggleMenu()">Menu</button>
       <button id="backBtn" class="hbtn" style="display:none" onclick="closeEditor()">Back</button>
       <div class="headTitle" id="headerTitle">—</div>
     </div>
@@ -497,13 +628,13 @@
       <div class="calendar" id="calendar"></div>
     </div>
 
-    <!-- Editor "page" -->
+    <!-- Editor view -->
     <div id="editorView" class="editorView">
       <div class="editorCard">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
           <div>
             <div style="font-weight:900;font-size:1.1rem;" id="editorDateTitle">—</div>
-            <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:4px;">Everything saves to your device automatically.</div>
+            <div style="color:var(--muted); font-size:.9rem; margin-top:4px;">Everything saves to your device automatically.</div>
           </div>
           <div class="actions" style="margin-top:0;">
             <button class="btn primary" onclick="saveDay()">Save</button>
@@ -551,8 +682,16 @@
         <div class="card">
           <h3>Top Lifts</h3>
           <div class="kpi">
-            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Volume</div><div id="topVolume" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div><div id="topVolumeSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
-            <div class="pill"><div style="color:rgba(255,255,255,.55); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Max Weight</div><div id="topMax" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div><div id="topMaxSub" style="color:rgba(255,255,255,.6); margin-top:4px; font-size:.9rem;">—</div></div>
+            <div class="pill">
+              <div style="color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Volume</div>
+              <div id="topVolume" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div>
+              <div id="topVolumeSub" style="color:var(--muted); margin-top:4px; font-size:.9rem;">—</div>
+            </div>
+            <div class="pill">
+              <div style="color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Max Weight</div>
+              <div id="topMax" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div>
+              <div id="topMaxSub" style="color:var(--muted); margin-top:4px; font-size:.9rem;">—</div>
+            </div>
           </div>
         </div>
 
@@ -563,7 +702,7 @@
 
         <div class="card" id="exerciseDetailCard" style="display:none">
           <h3 id="exerciseDetailTitle">Exercise</h3>
-          <div id="exerciseDetailSummary" style="color:rgba(255,255,255,.65); margin:6px 0 10px;"></div>
+          <div id="exerciseDetailSummary" style="color:var(--muted); margin:6px 0 10px;"></div>
           <table>
             <thead><tr><th>Date</th><th>Sets</th><th>Reps</th><th>Weight</th></tr></thead>
             <tbody id="exerciseDetailTable"></tbody>
@@ -574,8 +713,8 @@
       <div id="dataHealth" style="display:none">
         <div class="card">
           <h3>Averages</h3>
-          <div id="healthAverages" style="color:rgba(255,255,255,.85)">—</div>
-          <div id="healthAveragesSub" style="color:rgba(255,255,255,.55); margin-top:6px;">—</div>
+          <div id="healthAverages" style="color:var(--text)">—</div>
+          <div id="healthAveragesSub" style="color:var(--muted); margin-top:6px;">—</div>
         </div>
 
         <div class="card">
@@ -592,13 +731,11 @@
         </div>
       </div>
     </div>
+
   </div>
 </main>
 
 <script>
-  // --------------------
-  // Exercise Library
-  // --------------------
   const EXERCISES = [
     'Bench Press','DB Press','Cable Fly','Barbell Shoulder Press','DB Shoulder Press',
     'Back Squat','Front Squat','Hack Squat','Leg Press','Hamstring Curl','Leg Extension',
@@ -606,12 +743,8 @@
     'Bicep Curl','Preacher Curl','Triceps Push-Down'
   ];
 
-  // --------------------
-  // DOM
-  // --------------------
   const calendar = document.getElementById('calendar');
   const weekdayRow = document.getElementById('weekdayRow');
-
   const filesList = document.getElementById('filesList');
 
   const calendarView = document.getElementById('calendarView');
@@ -622,8 +755,10 @@
 
   const headerTitle = document.getElementById('headerTitle');
   const headerControls = document.getElementById('headerControls');
+  const menuBtn = document.getElementById('menuBtn');
   const backBtn = document.getElementById('backBtn');
   const editorDateTitle = document.getElementById('editorDateTitle');
+  const workoutRows = document.getElementById('workoutRows');
 
   const dataExercises = document.getElementById('dataExercises');
   const dataHealth = document.getElementById('dataHealth');
@@ -646,53 +781,58 @@
   const healthDetailTitle = document.getElementById('healthDetailTitle');
   const healthDetailTable = document.getElementById('healthDetailTable');
 
-  const workoutRows = document.getElementById('workoutRows');
-
-  // --------------------
-  // State
-  // --------------------
-  let mode = 'calendar'; // 'calendar' | 'data'
-  let dataTab = 'exercises'; // 'exercises' | 'health'
-  let view = 'month'; // 'month' | 'week' | 'day'
+  let mode = 'calendar';
+  let dataTab = 'exercises';
+  let view = 'month';
   let selectedCell = null;
   let selectedDate = new Date();
 
-  // --------------------
-  // Helpers
-  // --------------------
-  function dateKey(d) {
-    return d.toISOString().split('T')[0];
+  /* --------------------
+     THEME
+     -------------------- */
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('ig_theme', theme);
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = theme === 'light' ? 'Dark Mode' : 'Light Mode';
+  }
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    applyTheme(current === 'light' ? 'dark' : 'light');
   }
 
-  function isDateKey(k) {
-    return /^\d{4}-\d{2}-\d{2}$/.test(k);
+  /* --------------------
+     MOBILE MENU
+     -------------------- */
+  function toggleMenu() {
+    document.body.classList.toggle('menuHidden');
   }
+  function syncMobileMenuButton() {
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+    menuBtn.style.display = isMobile ? 'inline-flex' : 'none';
+    if (!isMobile) document.body.classList.remove('menuHidden');
+  }
+  window.addEventListener('resize', syncMobileMenuButton);
 
-  function safeNum(v) {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  function getAllDateKeys() {
-    return Object.keys(localStorage).filter(isDateKey).sort();
-  }
+  /* --------------------
+     HELPERS
+     -------------------- */
+  function dateKey(d) { return d.toISOString().split('T')[0]; }
+  function isDateKey(k) { return /^\d{4}-\d{2}-\d{2}$/.test(k); }
+  function safeNum(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
+  function getAllDateKeys() { return Object.keys(localStorage).filter(isDateKey).sort(); }
 
   function loadEntry(key) {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw);
-      // Migration: old flat structure -> new structure
-      if (parsed && !parsed.workouts && !parsed.health) {
-        return { workouts: [], health: parsed };
-      }
+      if (parsed && !parsed.workouts && !parsed.health) return { workouts: [], health: parsed };
       return {
         workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
         health: parsed.health && typeof parsed.health === 'object' ? parsed.health : {}
       };
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
   function saveEntry(key, entry) {
@@ -714,13 +854,11 @@
     });
   }
 
-  // --------------------
-  // Mode / Tabs
-  // --------------------
-  function setMode(next, btn) {
+  /* --------------------
+     MODE / TABS / VIEW
+     -------------------- */
+  function setMode(next) {
     mode = next;
-
-    // Only toggle active for Mode buttons
     document.getElementById('modeCalendar').classList.toggle('active', next === 'calendar');
     document.getElementById('modeData').classList.toggle('active', next === 'data');
 
@@ -745,7 +883,7 @@
     }
   }
 
-  function setDataTab(tab, btn) {
+  function setDataTab(tab) {
     dataTab = tab;
     document.getElementById('dataExercisesBtn').classList.toggle('active', tab === 'exercises');
     document.getElementById('dataHealthBtn').classList.toggle('active', tab === 'health');
@@ -754,62 +892,55 @@
 
   function setView(v, btn) {
     view = v;
-    // Toggle active only for calendar view buttons
     const viewBtns = Array.from(document.querySelectorAll('#calendarControls .nav button'));
     viewBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn) btn.classList.add('active');
     renderCalendar();
   }
 
-  // --------------------
-  // Header Controls (month/week/day navigation)
-  // --------------------
-  function goToday() {
-    selectedDate = new Date();
-    renderCalendar();
-  }
+  /* --------------------
+     HEADER CONTROLS
+     -------------------- */
+  function goToday() { selectedDate = new Date(); renderCalendar(); }
 
   function prevPeriod() {
-    if (view === 'month') {
-      selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
-    } else if (view === 'week') {
-      const d = new Date(selectedDate); d.setDate(d.getDate() - 7); selectedDate = d;
-    } else {
-      const d = new Date(selectedDate); d.setDate(d.getDate() - 1); selectedDate = d;
-    }
+    if (view === 'month') selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
+    else if (view === 'week') { const d = new Date(selectedDate); d.setDate(d.getDate() - 7); selectedDate = d; }
+    else { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); selectedDate = d; }
     renderCalendar();
   }
 
   function nextPeriod() {
-    if (view === 'month') {
-      selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1);
-    } else if (view === 'week') {
-      const d = new Date(selectedDate); d.setDate(d.getDate() + 7); selectedDate = d;
-    } else {
-      const d = new Date(selectedDate); d.setDate(d.getDate() + 1); selectedDate = d;
-    }
+    if (view === 'month') selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1);
+    else if (view === 'week') { const d = new Date(selectedDate); d.setDate(d.getDate() + 7); selectedDate = d; }
+    else { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); selectedDate = d; }
     renderCalendar();
   }
 
-  // --------------------
-  // Calendar Render
-  // --------------------
+  /* --------------------
+     CALENDAR RENDER
+     -------------------- */
   function renderCalendar() {
     weekdaysHeader();
     calendar.innerHTML = '';
 
-    // Title: month/week/day text outside the cells (no small date inside cells)
-    if (view === 'month') {
-      headerTitle.textContent = fmtMonthYear(selectedDate);
-    } else if (view === 'week') {
+    // IMPORTANT: Day view should show ONLY ONE day
+    if (view === 'day') {
+      weekdayRow.style.display = 'none';
+      calendar.style.gridTemplateColumns = '1fr';
+    } else {
+      weekdayRow.style.display = 'grid';
+      calendar.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    }
+
+    if (view === 'month') headerTitle.textContent = fmtMonthYear(selectedDate);
+    else if (view === 'week') {
       const start = new Date(selectedDate);
       start.setDate(start.getDate() - start.getDay());
       const end = new Date(start);
       end.setDate(end.getDate() + 6);
       headerTitle.textContent = `Week: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-    } else {
-      headerTitle.textContent = selectedDate.toDateString();
-    }
+    } else headerTitle.textContent = selectedDate.toDateString();
 
     if (view === 'month') renderMonth();
     if (view === 'week') renderWeek();
@@ -821,21 +952,16 @@
   function renderMonth() {
     const y = selectedDate.getFullYear();
     const m = selectedDate.getMonth();
-
     const first = new Date(y, m, 1);
     const last = new Date(y, m + 1, 0);
 
     for (let i = 0; i < first.getDay(); i++) calendar.appendChild(document.createElement('div'));
-
-    for (let d = 1; d <= last.getDate(); d++) {
-      addDayCell(new Date(y, m, d));
-    }
+    for (let d = 1; d <= last.getDate(); d++) addDayCell(new Date(y, m, d));
   }
 
   function renderWeek() {
     const start = new Date(selectedDate);
     start.setDate(start.getDate() - start.getDay());
-
     for (let i = 0; i < 7; i++) {
       const date = new Date(start);
       date.setDate(start.getDate() + i);
@@ -862,7 +988,6 @@
       mini = `<div class="mini"><span class="chip">${count} lifts</span><span class="chip">${totalSets} sets</span><span class="chip">${totalReps} reps</span></div>`;
     }
 
-    // Only show the day number inside the cell
     cell.innerHTML = `<strong>${date.getDate()}</strong>${mini}`;
 
     if (date.toDateString() === new Date().toDateString()) cell.classList.add('today');
@@ -870,7 +995,6 @@
     cell.onclick = () => openEditor(date, cell);
     calendar.appendChild(cell);
 
-    // Selection highlight in day/week/month
     if (date.toDateString() === selectedDate.toDateString()) {
       if (selectedCell) selectedCell.classList.remove('selected');
       selectedCell = cell;
@@ -878,9 +1002,9 @@
     }
   }
 
-  // --------------------
-  // Editor "page"
-  // --------------------
+  /* --------------------
+     EDITOR
+     -------------------- */
   function openEditor(date, cell) {
     if (selectedCell) selectedCell.classList.remove('selected');
     selectedCell = cell;
@@ -888,7 +1012,6 @@
 
     selectedDate = date;
 
-    // Switch to editor view
     calendarView.style.display = 'none';
     dataView.style.display = 'none';
     editorView.style.display = 'block';
@@ -901,18 +1024,20 @@
     const key = dateKey(date);
     const entry = loadEntry(key) || { workouts: [], health: {} };
 
-    // Render workouts
     workoutRows.innerHTML = '';
     if (entry.workouts.length) entry.workouts.forEach(w => addWorkoutRow(w));
     else addWorkoutRow();
 
-    // Health
     const healthFields = ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'];
     healthFields.forEach(id => {
       const el = document.getElementById(id);
-      if (!el) return;
-      el.value = entry.health?.[id] ?? '';
+      if (el) el.value = entry.health?.[id] ?? '';
     });
+
+    // On mobile, hide sidebar so editor fills screen
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      document.body.classList.add('menuHidden');
+    }
   }
 
   function closeEditor() {
@@ -923,9 +1048,9 @@
     renderCalendar();
   }
 
-  // --------------------
-  // Workout Rows
-  // --------------------
+  /* --------------------
+     WORKOUT ROWS
+     -------------------- */
   function addWorkoutRow(initial = null) {
     const row = document.createElement('div');
     row.className = 'exerciseRow';
@@ -968,21 +1093,16 @@
     workoutRows.appendChild(row);
   }
 
-  // --------------------
-  // Save / Clear
-  // --------------------
+  /* --------------------
+     SAVE / CLEAR
+     -------------------- */
   function saveDay() {
     const key = dateKey(selectedDate);
 
     const workouts = [];
     workoutRows.querySelectorAll('.exerciseRow').forEach(r => {
       const [sel, sets, reps, weight] = r.querySelectorAll('select, input');
-      const w = {
-        exercise: sel.value,
-        sets: sets.value,
-        reps: reps.value,
-        weight: weight.value
-      };
+      const w = { exercise: sel.value, sets: sets.value, reps: reps.value, weight: weight.value };
       if (w.exercise && (w.sets || w.reps || w.weight)) workouts.push(w);
     });
 
@@ -993,8 +1113,6 @@
     });
 
     saveEntry(key, { workouts, health });
-
-    // Refresh sidebar lists / data
     loadFiles();
     if (mode === 'data') renderData();
   }
@@ -1003,7 +1121,6 @@
     const key = dateKey(selectedDate);
     localStorage.removeItem(key);
 
-    // Clear UI
     workoutRows.innerHTML = '';
     addWorkoutRow();
     ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'].forEach(id => {
@@ -1015,15 +1132,15 @@
     if (mode === 'data') renderData();
   }
 
-  // --------------------
-  // Saved Days List
-  // --------------------
+  /* --------------------
+     SAVED DAYS LIST
+     -------------------- */
   function loadFiles() {
     filesList.innerHTML = '';
     const keys = getAllDateKeys();
     if (!keys.length) {
       const empty = document.createElement('div');
-      empty.style.color = 'rgba(255,255,255,.45)';
+      empty.style.color = 'var(--muted)';
       empty.style.padding = '10px 4px';
       empty.textContent = 'No saved days yet.';
       filesList.appendChild(empty);
@@ -1036,22 +1153,20 @@
       div.className = 'item';
 
       const left = document.createElement('div');
-      left.innerHTML = `<div style="color:rgba(255,255,255,.85); font-weight:800;">${k}</div>`;
+      left.innerHTML = `<div style="color:var(--text); font-weight:800;">${k}</div>`;
 
-      let meta = '';
+      let meta = 'Saved';
       if (entry?.workouts?.length) {
         const sets = entry.workouts.reduce((s,w)=>s+safeNum(w.sets),0);
         const reps = entry.workouts.reduce((s,w)=>s+safeNum(w.reps),0);
         meta = `${entry.workouts.length} lifts · ${sets}s · ${reps}r`;
-      } else {
-        meta = 'Saved';
       }
 
       left.innerHTML += `<small>${meta}</small>`;
 
       const go = document.createElement('div');
       go.textContent = '›';
-      go.style.color = 'rgba(255,255,255,.55)';
+      go.style.color = 'var(--muted)';
       go.style.fontWeight = '900';
 
       div.appendChild(left);
@@ -1059,11 +1174,8 @@
 
       div.onclick = () => {
         selectedDate = new Date(k + 'T12:00:00');
-        // Open editor directly
-        if (mode !== 'calendar') setMode('calendar', document.getElementById('modeCalendar'));
-        // ensure month view shows selected month
+        if (mode !== 'calendar') setMode('calendar');
         renderCalendar();
-        // open editor (no need to find exact cell)
         openEditor(selectedDate, (selectedCell || document.createElement('div')));
       };
 
@@ -1071,9 +1183,9 @@
     });
   }
 
-  // --------------------
-  // Aggregation for Data Tab
-  // --------------------
+  /* --------------------
+     DATA AGGREGATION
+     -------------------- */
   function aggregate() {
     const agg = {};
     EXERCISES.forEach(e => agg[e] = { sets: 0, reps: 0, maxWeight: 0, history: [] });
@@ -1114,13 +1226,11 @@
 
   function renderData() {
     headerTitle.textContent = dataTab === 'exercises' ? 'Data · Exercises' : 'Data · Health';
-
     dataExercises.style.display = dataTab === 'exercises' ? 'block' : 'none';
     dataHealth.style.display = dataTab === 'health' ? 'block' : 'none';
 
     const { agg, healthSeries } = aggregate();
 
-    // Exercises
     if (dataTab === 'exercises') {
       exerciseDetailCard.style.display = 'none';
       exerciseList.innerHTML = '';
@@ -1139,9 +1249,11 @@
         row.innerHTML = `
           <div>
             <div style="font-weight:900;">${name}</div>
-            <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:2px;">${a.sets} sets · ${a.reps} reps · max ${a.maxWeight || 0}</div>
+            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">
+              ${a.sets} sets · ${a.reps} reps · max ${a.maxWeight || 0}
+            </div>
           </div>
-          <div style="color:rgba(255,255,255,.55); font-weight:900;">›</div>
+          <div style="color:var(--muted); font-weight:900;">›</div>
         `;
         row.onclick = () => showExerciseDetail(name, agg[name]);
         exerciseList.appendChild(row);
@@ -1154,11 +1266,9 @@
       topMaxSub.textContent = `max ${bestMax.max < 0 ? 0 : bestMax.max}`;
     }
 
-    // Health
     if (dataTab === 'health') {
       healthDetailCard.style.display = 'none';
 
-      // Average water + sleep across all saved days where values are numeric
       const waterVals = (healthSeries.water || []).map(x => safeNum(x.value)).filter(n => n > 0);
       const sleepVals = (healthSeries.sleep || []).map(x => safeNum(x.value)).filter(n => n > 0);
 
@@ -1195,14 +1305,17 @@
       METRICS.forEach(([id,label]) => {
         const series = healthSeries[id] || [];
         const last = series.length ? series[series.length - 1] : null;
+
         const row = document.createElement('div');
         row.className = 'rowItem';
         row.innerHTML = `
           <div>
             <div style="font-weight:900;">${label}</div>
-            <div style="color:rgba(255,255,255,.55); font-size:.9rem; margin-top:2px;">Latest: ${last ? last.value : '—'} ${last ? `(${last.date})` : ''}</div>
+            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">
+              Latest: ${last ? last.value : '—'} ${last ? `(${last.date})` : ''}
+            </div>
           </div>
-          <div style="color:rgba(255,255,255,.55); font-weight:900;">›</div>
+          <div style="color:var(--muted); font-weight:900;">›</div>
         `;
         row.onclick = () => showHealthDetail(label, series);
         healthMetricList.appendChild(row);
@@ -1219,7 +1332,7 @@
     const rows = a.history.slice().sort((x,y) => x.date.localeCompare(y.date));
     if (!rows.length) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="4" style="color:rgba(255,255,255,.55)">No saved entries yet.</td>`;
+      tr.innerHTML = `<td colspan="4" style="color:var(--muted)">No saved entries yet.</td>`;
       exerciseDetailTable.appendChild(tr);
       return;
     }
@@ -1241,7 +1354,7 @@
     const rows = series.slice().sort((a,b) => a.date.localeCompare(b.date));
     if (!rows.length) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="2" style="color:rgba(255,255,255,.55)">No saved entries yet.</td>`;
+      tr.innerHTML = `<td colspan="2" style="color:var(--muted)">No saved entries yet.</td>`;
       healthDetailTable.appendChild(tr);
       return;
     }
@@ -1255,10 +1368,13 @@
     healthDetailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // --------------------
-  // Init
-  // --------------------
   function init() {
+    // theme: saved > system preference
+    const saved = localStorage.getItem('ig_theme');
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    applyTheme(saved || (prefersLight ? 'light' : 'dark'));
+
+    syncMobileMenuButton();
     selectedDate = new Date();
     weekdaysHeader();
     renderCalendar();
@@ -1270,4 +1386,3 @@
 
 </body>
 </html>
-
