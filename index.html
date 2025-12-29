@@ -237,8 +237,6 @@
       color: rgba(11,16,32,.92);
     }
 
-    .hamburger { font-size: 18px; line-height: 1; padding: 8px 10px; }
-
     .content {
       display: grid;
       grid-template-rows: 1fr;
@@ -617,7 +615,6 @@
 
       .weekday { padding: 6px 6px; font-size: 0.68rem; }
 
-      /* Grid fills remaining height; rows compress to fit */
       .calendar {
         height: 100%;
         grid-auto-rows: 1fr;
@@ -636,7 +633,6 @@
       .setRow { grid-template-columns: 1fr 1fr 42px; }
     }
 
-    /* Single-column layouts for day / 3-day */
     .singleCol { grid-template-columns: 1fr !important; }
     .threeCol { grid-template-columns: repeat(3, 1fr) !important; }
   </style>
@@ -645,7 +641,9 @@
 
 <aside>
   <div class="brand">
-    <img id="brandLogo" src="logo.png" alt="Iron Gate logo" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)" onerror="this.style.display='none'" />
+    <img id="brandLogo" src="logo.png" alt="Iron Gate logo"
+      style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)"
+      onerror="this.style.display='none'" />
     <h2>Iron Gate</h2>
     <span class="badge">RUGGED</span>
   </div>
@@ -692,7 +690,9 @@
 <div class="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="brand" style="border-bottom:1px solid var(--border); padding-bottom:12px;">
-    <img src="logo.png" alt="Iron Gate logo" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)" onerror="this.style.display='none'" />
+    <img src="logo.png" alt="Iron Gate logo"
+      style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)"
+      onerror="this.style.display='none'" />
     <h2 style="margin:0">Iron Gate</h2>
     <span class="badge">RUGGED</span>
   </div>
@@ -742,13 +742,15 @@
 <main>
   <header>
     <div class="headLeft">
-      <button id="mobileBack" class="hbtn" style="display:none" onclick="mobileBackToCalendar()">←</button>
+      <!-- Back arrow for mobile when in Data, or for any mode when editor is open -->
+      <button id="backBtn" class="hbtn" style="display:none" onclick="handleBack()">←</button>
       <div class="headTitle" id="headerTitle">—</div>
     </div>
+
     <div class="headRight" id="headerControls">
-      <button class="hbtn" onclick="goToday()">Today</button>
-      <button class="hbtn" onclick="prevPeriod()">◀</button>
-      <button class="hbtn" onclick="nextPeriod()">▶</button>
+      <button class="hbtn" id="todayBtn" onclick="goToday()">Today</button>
+      <button class="hbtn" id="prevBtn" onclick="prevPeriod()">◀</button>
+      <button class="hbtn" id="nextBtn" onclick="nextPeriod()">▶</button>
       <button class="hbtn" id="menuBtn" onclick="toggleDrawer()">☰</button>
     </div>
   </header>
@@ -824,8 +826,17 @@
           </div>
         </div>
 
+        <div class="card" id="recentCard">
+          <h3>Recent Saved Sets</h3>
+          <div style="color:var(--muted); margin-bottom:10px; font-size:.92rem;" id="recentSub">—</div>
+          <table>
+            <thead><tr><th>Date</th><th>Exercise</th><th>Reps</th><th>Weight</th></tr></thead>
+            <tbody id="recentTable"></tbody>
+          </table>
+        </div>
+
         <div class="card">
-          <h3>Exercises</h3>
+          <h3>Exercises (Lifetime)</h3>
           <div class="list" id="exerciseList"></div>
         </div>
 
@@ -841,7 +852,7 @@
 
       <div id="dataHealth" style="display:none">
         <div class="card">
-          <h3>Averages</h3>
+          <h3>Health Snapshot</h3>
           <div id="healthAverages" style="color:var(--text)">—</div>
           <div id="healthAveragesSub" style="color:var(--muted); margin-top:6px;">—</div>
         </div>
@@ -864,9 +875,6 @@
 </main>
 
 <script>
-  // --------------------
-  // Exercise Library (includes Sauna)
-  // --------------------
   const EXERCISES = [
     'Bench Press','DB Press','Cable Fly','Barbell Shoulder Press','DB Shoulder Press',
     'Back Squat','Front Squat','Hack Squat','Leg Press','Hamstring Curl','Leg Extension',
@@ -875,9 +883,7 @@
     'Sauna'
   ];
 
-  // --------------------
   // DOM
-  // --------------------
   const calendar = document.getElementById('calendar');
   const weekdayRow = document.getElementById('weekdayRow');
 
@@ -894,6 +900,11 @@
   const headerTitle = document.getElementById('headerTitle');
   const headerControls = document.getElementById('headerControls');
   const backBtn = document.getElementById('backBtn');
+
+  const todayBtn = document.getElementById('todayBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
   const editorDateTitle = document.getElementById('editorDateTitle');
   const workoutRows = document.getElementById('workoutRows');
 
@@ -911,6 +922,9 @@
   const topMax = document.getElementById('topMax');
   const topMaxSub = document.getElementById('topMaxSub');
 
+  const recentSub = document.getElementById('recentSub');
+  const recentTable = document.getElementById('recentTable');
+
   const healthAverages = document.getElementById('healthAverages');
   const healthAveragesSub = document.getElementById('healthAveragesSub');
   const healthMetricList = document.getElementById('healthMetricList');
@@ -921,9 +935,7 @@
   const drawerCalendarSection = document.getElementById('drawerCalendarSection');
   const drawerDataSection = document.getElementById('drawerDataSection');
 
-  // --------------------
   // State
-  // --------------------
   let mode = 'calendar';
   let dataTab = 'exercises';
   let view = 'month';
@@ -933,9 +945,7 @@
   let savedVisibleDesktop = false;
   let savedVisibleMobile = false;
 
-  // --------------------
   // Theme
-  // --------------------
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('ig_theme', theme);
@@ -951,20 +961,12 @@
     applyTheme(current === 'light' ? 'dark' : 'light');
   }
 
-  // --------------------
   // Drawer
-  // --------------------
-  function toggleDrawer() {
-    document.body.classList.toggle('drawerOpen');
-  }
+  function toggleDrawer() { document.body.classList.toggle('drawerOpen'); }
+  function closeDrawer() { document.body.classList.remove('drawerOpen'); }
 
-  function closeDrawer() {
-    document.body.classList.remove('drawerOpen');
-  }
-
-  // --------------------
   // Helpers
-  // --------------------
+  function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
   function dateKey(d) { return d.toISOString().split('T')[0]; }
   function isDateKey(k) { return /^\d{4}-\d{2}-\d{2}$/.test(k); }
   function safeNum(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
@@ -975,19 +977,23 @@
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw);
-      // Migration: old workouts[] with sets/reps/weight -> new workouts[] with sets[]
-      if (parsed && Array.isArray(parsed.workouts) && parsed.workouts.length && parsed.workouts[0] && !Array.isArray(parsed.workouts[0].sets)) {
-        const migrated = {
-          workouts: parsed.workouts.map(w => ({
-            exercise: w.exercise || EXERCISES[0],
-            sets: [{ reps: w.reps ?? '', weight: w.weight ?? '' }].filter(s => String(s.reps).length || String(s.weight).length)
-          })),
-          health: parsed.health && typeof parsed.health === 'object' ? parsed.health : {}
-        };
-        return migrated;
-      }
-      // Migration: very old flat health
+
+      // Very old flat health
       if (parsed && !parsed.workouts && !parsed.health) return { workouts: [], health: parsed };
+
+      // Migration: old workouts with sets/reps/weight -> new sets[]
+      if (parsed && Array.isArray(parsed.workouts) && parsed.workouts.length) {
+        const w0 = parsed.workouts[0];
+        if (w0 && !Array.isArray(w0.sets)) {
+          return {
+            workouts: parsed.workouts.map(w => ({
+              exercise: w.exercise || EXERCISES[0],
+              sets: [{ reps: w.reps ?? '', weight: w.weight ?? '' }].filter(s => String(s.reps).length || String(s.weight).length)
+            })),
+            health: parsed.health && typeof parsed.health === 'object' ? parsed.health : {}
+          };
+        }
+      }
 
       return {
         workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
@@ -998,9 +1004,7 @@
     }
   }
 
-  function saveEntry(key, entry) {
-    localStorage.setItem(key, JSON.stringify(entry));
-  }
+  function saveEntry(key, entry) { localStorage.setItem(key, JSON.stringify(entry)); }
 
   function fmtMonthYear(d) {
     return d.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -1017,9 +1021,50 @@
     });
   }
 
-  // --------------------
+  // Back button logic
+  function handleBack() {
+    if (editorView.style.display === 'block') {
+      closeEditor();
+      return;
+    }
+    if (mode === 'data') {
+      setMode('calendar');
+      return;
+    }
+  }
+
+  function updateHeaderUI() {
+    const editorOpen = editorView.style.display === 'block';
+    const showBack = editorOpen || (mode === 'data' && isMobile());
+
+    backBtn.style.display = showBack ? 'inline-flex' : 'none';
+
+    // In editor: hide nav buttons, keep menu hidden too
+    if (editorOpen) {
+      todayBtn.style.display = 'none';
+      prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
+      document.getElementById('menuBtn').style.display = 'none';
+      return;
+    }
+
+    // In data: hide calendar nav arrows; keep hamburger for switching pages
+    if (mode === 'data') {
+      todayBtn.style.display = 'none';
+      prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
+      document.getElementById('menuBtn').style.display = 'inline-flex';
+      return;
+    }
+
+    // Calendar
+    todayBtn.style.display = 'inline-flex';
+    prevBtn.style.display = 'inline-flex';
+    nextBtn.style.display = 'inline-flex';
+    document.getElementById('menuBtn').style.display = 'inline-flex';
+  }
+
   // Mode / Tabs
-  // --------------------
   function setMode(next) {
     mode = next;
 
@@ -1038,8 +1083,7 @@
       dataView.style.display = 'none';
       editorView.style.display = 'none';
       calendarView.style.display = 'grid';
-      backBtn.style.display = 'none';
-      headerControls.style.display = 'flex';
+
       renderCalendar();
     } else {
       calendarControls.style.display = 'none';
@@ -1049,11 +1093,12 @@
 
       calendarView.style.display = 'none';
       editorView.style.display = 'none';
-      backBtn.style.display = 'none';
-      headerControls.style.display = 'none';
       dataView.style.display = 'block';
+
       renderData();
     }
+
+    updateHeaderUI();
   }
 
   function setDataTab(tab) {
@@ -1070,24 +1115,29 @@
   function setView(v, btn) {
     view = v;
 
-    const desktopBtns = [document.getElementById('viewMonth'), document.getElementById('view3'), document.getElementById('viewWeek'), document.getElementById('viewDay')].filter(Boolean);
+    const desktopBtns = [
+      document.getElementById('viewMonth'),
+      document.getElementById('view3'),
+      document.getElementById('viewWeek'),
+      document.getElementById('viewDay')
+    ].filter(Boolean);
     desktopBtns.forEach(b => b.classList.remove('active'));
     if (btn && btn.id && btn.id.startsWith('view')) btn.classList.add('active');
 
-    const mobileBtns = [document.getElementById('mViewMonth'), document.getElementById('mView3'), document.getElementById('mViewWeek'), document.getElementById('mViewDay')].filter(Boolean);
+    const mobileBtns = [
+      document.getElementById('mViewMonth'),
+      document.getElementById('mView3'),
+      document.getElementById('mViewWeek'),
+      document.getElementById('mViewDay')
+    ].filter(Boolean);
     mobileBtns.forEach(b => b.classList.remove('active'));
     if (btn && btn.id && btn.id.startsWith('mView')) btn.classList.add('active');
 
     renderCalendar();
   }
 
-  // --------------------
-  // Header Controls
-  // --------------------
-  function goToday() {
-    selectedDate = new Date();
-    renderCalendar();
-  }
+  // Calendar controls
+  function goToday() { selectedDate = new Date(); renderCalendar(); }
 
   function prevPeriod() {
     if (view === 'month') selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
@@ -1105,9 +1155,7 @@
     renderCalendar();
   }
 
-  // --------------------
-  // Calendar Render
-  // --------------------
+  // Calendar render
   function renderCalendar() {
     weekdaysHeader();
     calendar.innerHTML = '';
@@ -1143,6 +1191,7 @@
     if (view === 'day') renderDay();
 
     loadSavedLists();
+    updateHeaderUI();
   }
 
   function renderMonth() {
@@ -1173,9 +1222,7 @@
     }
   }
 
-  function renderDay() {
-    addDayCell(selectedDate);
-  }
+  function renderDay() { addDayCell(selectedDate); }
 
   function addDayCell(date) {
     const cell = document.createElement('div');
@@ -1206,9 +1253,7 @@
     }
   }
 
-  // --------------------
   // Editor
-  // --------------------
   function openEditor(date, cell) {
     if (selectedCell) selectedCell.classList.remove('selected');
     selectedCell = cell;
@@ -1219,8 +1264,6 @@
     calendarView.style.display = 'none';
     dataView.style.display = 'none';
     editorView.style.display = 'block';
-    backBtn.style.display = 'inline-flex';
-    headerControls.style.display = 'none';
 
     editorDateTitle.textContent = date.toDateString();
     headerTitle.textContent = date.toDateString();
@@ -1238,19 +1281,17 @@
       if (!el) return;
       el.value = entry.health?.[id] ?? '';
     });
+
+    updateHeaderUI();
   }
 
   function closeEditor() {
     editorView.style.display = 'none';
-    backBtn.style.display = 'none';
-    headerControls.style.display = 'flex';
     calendarView.style.display = 'grid';
     renderCalendar();
   }
 
-  // --------------------
-  // Workouts (Exercise Card + Set rows)
-  // --------------------
+  // Workouts UI
   function makeExerciseSelect(value) {
     const sel = document.createElement('select');
     EXERCISES.forEach(name => {
@@ -1310,7 +1351,6 @@
     const setList = document.createElement('div');
     setList.className = 'setList';
 
-    // seed sets
     const sets = Array.isArray(initial?.sets) ? initial.sets : [];
     if (sets.length) sets.forEach(s => addSetRow(setList, s));
     else addSetRow(setList);
@@ -1332,9 +1372,7 @@
     workoutRows.appendChild(card);
   }
 
-  // --------------------
   // Save / Clear
-  // --------------------
   function saveDay() {
     const key = dateKey(selectedDate);
 
@@ -1378,9 +1416,7 @@
     if (mode === 'data') renderData();
   }
 
-  // --------------------
   // Saved Days (hidden until toggled)
-  // --------------------
   function toggleSavedDays(which) {
     if (which === 'desktop') {
       savedVisibleDesktop = !savedVisibleDesktop;
@@ -1441,7 +1477,6 @@
           selectedDate = new Date(k + 'T12:00:00');
           if (mode !== 'calendar') setMode('calendar');
           renderCalendar();
-          // open editor without needing exact cell
           openEditor(selectedDate, (selectedCell || document.createElement('div')));
           closeDrawer();
         };
@@ -1450,14 +1485,11 @@
       });
     };
 
-    // Only render lists if visible
     if (savedVisibleDesktop) renderInto(filesListDesktop);
     if (savedVisibleMobile) renderInto(filesListMobile);
   }
 
-  // --------------------
   // Aggregation for Data
-  // --------------------
   function aggregate() {
     const agg = {};
     EXERCISES.forEach(e => agg[e] = { sets: 0, reps: 0, maxWeight: 0, history: [] });
@@ -1467,25 +1499,44 @@
       protein: [], calories: [], water: [], sleep: [], stool: []
     };
 
+    const recent = [];
+
     const keys = getAllDateKeys();
     keys.forEach(k => {
       const entry = loadEntry(k);
       if (!entry) return;
 
+      // Workouts
       (entry.workouts || []).forEach(w => {
         if (!w.exercise || !agg[w.exercise]) return;
-        const sets = Array.isArray(w.sets) ? w.sets : [];
 
-        agg[w.exercise].sets += sets.length;
-        sets.forEach((s, idx) => {
-          const reps = safeNum(s.reps);
-          const weight = safeNum(s.weight);
+        // New format
+        if (Array.isArray(w.sets)) {
+          w.sets.forEach((s, idx) => {
+            const reps = safeNum(s?.reps);
+            const weight = safeNum(s?.weight);
+            agg[w.exercise].sets += 1;
+            agg[w.exercise].reps += reps;
+            agg[w.exercise].maxWeight = Math.max(agg[w.exercise].maxWeight, weight);
+            const row = { date: k, exercise: w.exercise, setIndex: idx + 1, reps, weight };
+            agg[w.exercise].history.push(row);
+            recent.push(row);
+          });
+        } else {
+          // Old format (rare, but supported)
+          const reps = safeNum(w.reps);
+          const weight = safeNum(w.weight);
+          const sets = Math.max(1, safeNum(w.sets));
+          agg[w.exercise].sets += sets;
           agg[w.exercise].reps += reps;
           agg[w.exercise].maxWeight = Math.max(agg[w.exercise].maxWeight, weight);
-          agg[w.exercise].history.push({ date: k, setIndex: idx + 1, reps, weight });
-        });
+          const row = { date: k, exercise: w.exercise, setIndex: 1, reps, weight };
+          agg[w.exercise].history.push(row);
+          recent.push(row);
+        }
       });
 
+      // Health
       const h = entry.health || {};
       Object.keys(healthSeries).forEach(id => {
         const v = h[id];
@@ -1495,7 +1546,8 @@
       });
     });
 
-    return { agg, healthSeries };
+    recent.sort((a,b) => b.date.localeCompare(a.date));
+    return { agg, healthSeries, recent };
   }
 
   function renderData() {
@@ -1504,12 +1556,29 @@
     dataExercises.style.display = dataTab === 'exercises' ? 'block' : 'none';
     dataHealth.style.display = dataTab === 'health' ? 'block' : 'none';
 
-    const { agg, healthSeries } = aggregate();
+    const { agg, healthSeries, recent } = aggregate();
 
     if (dataTab === 'exercises') {
       exerciseDetailCard.style.display = 'none';
       exerciseList.innerHTML = '';
 
+      // Recent table
+      recentTable.innerHTML = '';
+      const recentSlice = recent.slice(0, 18);
+      recentSub.textContent = recentSlice.length ? `Showing your latest ${recentSlice.length} saved set(s).` : 'No saved workout data yet. Save a day to populate.';
+      if (!recentSlice.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="4" style="color:var(--muted)">No entries yet.</td>`;
+        recentTable.appendChild(tr);
+      } else {
+        recentSlice.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${r.date}</td><td>${r.exercise}</td><td>${r.reps}</td><td>${r.weight}</td>`;
+          recentTable.appendChild(tr);
+        });
+      }
+
+      // Top Volume + Top Max
       let bestVol = { name: '—', score: -1, sets: 0, reps: 0 };
       let bestMax = { name: '—', max: -1 };
 
@@ -1518,48 +1587,77 @@
         const score = a.sets + a.reps;
         if (score > bestVol.score) bestVol = { name, score, sets: a.sets, reps: a.reps };
         if (a.maxWeight > bestMax.max) bestMax = { name, max: a.maxWeight };
+      });
+
+      topVolume.textContent = bestVol.name;
+      topVolumeSub.textContent = bestVol.score < 0 ? 'Save a day to populate.' : `${bestVol.sets} sets · ${bestVol.reps} reps`;
+
+      topMax.textContent = bestMax.name;
+      topMaxSub.textContent = bestMax.max < 0 ? 'Save a day to populate.' : `max ${bestMax.max}`;
+
+      // Exercise list (Lifetime + latest line)
+      EXERCISES.forEach(name => {
+        const a = agg[name];
+        const latest = (a.history || []).slice().sort((x,y)=> y.date.localeCompare(x.date))[0] || null;
+        const latestText = latest ? `Latest: ${latest.reps} reps @ ${latest.weight || 0} (${latest.date})` : 'No entries yet';
 
         const row = document.createElement('div');
         row.className = 'rowItem';
         row.innerHTML = `
           <div>
             <div style="font-weight:900;">${name}</div>
-            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">${a.sets} sets · ${a.reps} reps · max ${a.maxWeight || 0}</div>
+            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">
+              Lifetime: ${a.sets} sets · ${a.reps} reps · max ${a.maxWeight || 0}
+            </div>
+            <div style="color:var(--muted); font-size:.85rem; margin-top:4px;">${latestText}</div>
           </div>
           <div style="color:var(--muted); font-weight:900;">›</div>
         `;
         row.onclick = () => showExerciseDetail(name, agg[name]);
         exerciseList.appendChild(row);
       });
-
-      topVolume.textContent = bestVol.name;
-      topVolumeSub.textContent = `${bestVol.sets} sets · ${bestVol.reps} reps`;
-
-      topMax.textContent = bestMax.name;
-      topMaxSub.textContent = `max ${bestMax.max < 0 ? 0 : bestMax.max}`;
     }
 
     if (dataTab === 'health') {
       healthDetailCard.style.display = 'none';
 
+      const avg = arr => arr.length ? (arr.reduce((s,n)=>s+n,0) / arr.length) : 0;
+
       const waterVals = (healthSeries.water || []).map(x => safeNum(x.value)).filter(n => n > 0);
       const sleepVals = (healthSeries.sleep || []).map(x => safeNum(x.value)).filter(n => n > 0);
-
-      const avg = arr => arr.length ? (arr.reduce((s,n)=>s+n,0) / arr.length) : 0;
       const avgWater = avg(waterVals);
       const avgSleep = avg(sleepVals);
 
+      const latestOf = (id) => {
+        const s = (healthSeries[id] || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+        return s.length ? s[0] : null;
+      };
+
+      const curWeight = latestOf('bodyweight');
+      const curRB = latestOf('rbicep');
+      const curLB = latestOf('lbicep');
+      const curRC = latestOf('rcalf');
+      const curLC = latestOf('lcalf');
+
       const daysCount = getAllDateKeys().length;
-      const waterDays = waterVals.length;
-      const sleepDays = sleepVals.length;
 
       healthAverages.innerHTML = `
-        <div style="display:grid; gap:8px; margin-top:8px;">
-          <div><strong>Avg Water:</strong> ${avgWater ? avgWater.toFixed(1) : '—'} cups</div>
-          <div><strong>Avg Sleep:</strong> ${avgSleep ? avgSleep.toFixed(1) : '—'} hrs</div>
+        <div style="display:grid; gap:10px; margin-top:8px;">
+          <div>
+            <div><strong>Current Weight:</strong> ${curWeight ? `${curWeight.value} (${curWeight.date})` : '—'}</div>
+            <div style="margin-top:8px;"><strong>Current Measurements</strong></div>
+            <div style="color:var(--muted); font-size:.92rem; line-height:1.35; margin-top:4px;">
+              Right Bicep: ${curRB ? curRB.value : '—'} · Left Bicep: ${curLB ? curLB.value : '—'}<br/>
+              Right Calf: ${curRC ? curRC.value : '—'} · Left Calf: ${curLC ? curLC.value : '—'}
+            </div>
+          </div>
+          <div>
+            <div><strong>Average Water:</strong> ${avgWater ? avgWater.toFixed(1) : '—'} cups</div>
+            <div><strong>Average Sleep:</strong> ${avgSleep ? avgSleep.toFixed(1) : '—'} hrs</div>
+          </div>
         </div>
       `;
-      healthAveragesSub.textContent = `Based on ${daysCount} saved day(s). Water entries: ${waterDays}. Sleep entries: ${sleepDays}.`;
+      healthAveragesSub.textContent = daysCount ? `Based on ${daysCount} saved day(s).` : 'No saved health data yet. Save a day to populate.';
 
       const METRICS = [
         ['bodyweight','Body Weight'],
@@ -1576,14 +1674,17 @@
 
       healthMetricList.innerHTML = '';
       METRICS.forEach(([id,label]) => {
-        const series = healthSeries[id] || [];
-        const last = series.length ? series[series.length - 1] : null;
+        const series = (healthSeries[id] || []).slice().sort((a,b)=> b.date.localeCompare(a.date));
+        const last = series.length ? series[0] : null;
+
         const row = document.createElement('div');
         row.className = 'rowItem';
         row.innerHTML = `
           <div>
             <div style="font-weight:900;">${label}</div>
-            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">Latest: ${last ? last.value : '—'} ${last ? `(${last.date})` : ''}</div>
+            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">
+              Recent: ${last ? `${last.value} (${last.date})` : '—'}
+            </div>
           </div>
           <div style="color:var(--muted); font-weight:900;">›</div>
         `;
@@ -1591,15 +1692,18 @@
         healthMetricList.appendChild(row);
       });
     }
+
+    updateHeaderUI();
   }
 
   function showExerciseDetail(name, a) {
     exerciseDetailCard.style.display = 'block';
     exerciseDetailTitle.textContent = name;
-    exerciseDetailSummary.textContent = `${a.sets} total sets · ${a.reps} total reps · max weight ${a.maxWeight || 0}`;
+    exerciseDetailSummary.textContent = `Lifetime: ${a.sets} sets · ${a.reps} reps · max weight ${a.maxWeight || 0}`;
 
     exerciseDetailTable.innerHTML = '';
-    const rows = a.history.slice().sort((x,y) => x.date.localeCompare(y.date) || (x.setIndex - y.setIndex));
+    const rows = (a.history || []).slice().sort((x,y) => x.date.localeCompare(y.date) || (x.setIndex - y.setIndex));
+
     if (!rows.length) {
       const tr = document.createElement('tr');
       tr.innerHTML = `<td colspan="4" style="color:var(--muted)">No saved entries yet.</td>`;
@@ -1609,7 +1713,7 @@
 
     rows.forEach(r => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.date}</td><td>${r.setIndex}</td><td>${r.reps}</td><td>${r.weight}</td>`;
+      tr.innerHTML = `<td>${r.date}</td><td>${r.setIndex || 1}</td><td>${r.reps}</td><td>${r.weight}</td>`;
       exerciseDetailTable.appendChild(tr);
     });
 
@@ -1621,7 +1725,7 @@
     healthDetailTitle.textContent = label;
     healthDetailTable.innerHTML = '';
 
-    const rows = series.slice().sort((a,b) => a.date.localeCompare(b.date));
+    const rows = (series || []).slice().sort((a,b) => a.date.localeCompare(b.date));
     if (!rows.length) {
       const tr = document.createElement('tr');
       tr.innerHTML = `<td colspan="2" style="color:var(--muted)">No saved entries yet.</td>`;
@@ -1638,9 +1742,7 @@
     healthDetailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // --------------------
   // Init
-  // --------------------
   function init() {
     const savedTheme = localStorage.getItem('ig_theme');
     applyTheme(savedTheme === 'light' ? 'light' : 'dark');
@@ -1649,13 +1751,14 @@
     weekdaysHeader();
     renderCalendar();
 
-    // Saved lists start hidden (as requested)
     document.getElementById('filesDesktop').style.display = 'none';
     document.getElementById('filesMobile').style.display = 'none';
+
+    window.addEventListener('resize', updateHeaderUI);
+    updateHeaderUI();
   }
 
   init();
 </script>
-
 </body>
 </html>
