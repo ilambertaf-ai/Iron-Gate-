@@ -893,7 +893,7 @@
 
   const headerTitle = document.getElementById('headerTitle');
   const headerControls = document.getElementById('headerControls');
-  const backBtn = document.getElementById('backBtn');
+  const backBtn = document.getElementById('mobileBack');
   const editorDateTitle = document.getElementById('editorDateTitle');
   const workoutRows = document.getElementById('workoutRows');
 
@@ -1029,6 +1029,8 @@
     document.getElementById('mModeCalendar').classList.toggle('active', next === 'calendar');
     document.getElementById('mModeData').classList.toggle('active', next === 'data');
 
+    const isPhone = window.matchMedia('(max-width: 900px)').matches;
+
     if (mode === 'calendar') {
       calendarControls.style.display = 'block';
       dataControls.style.display = 'none';
@@ -1038,8 +1040,10 @@
       dataView.style.display = 'none';
       editorView.style.display = 'none';
       calendarView.style.display = 'grid';
-      backBtn.style.display = 'none';
+
+      if (backBtn) backBtn.style.display = 'none';
       headerControls.style.display = 'flex';
+
       renderCalendar();
     } else {
       calendarControls.style.display = 'none';
@@ -1049,9 +1053,12 @@
 
       calendarView.style.display = 'none';
       editorView.style.display = 'none';
-      backBtn.style.display = 'none';
-      headerControls.style.display = 'none';
       dataView.style.display = 'block';
+
+      // On phone, show a back arrow to return to Calendar (Google Calendar-ish)
+      if (backBtn) backBtn.style.display = isPhone ? 'inline-flex' : 'none';
+      headerControls.style.display = 'none';
+
       renderData();
     }
   }
@@ -1210,16 +1217,23 @@
   // Editor
   // --------------------
   function openEditor(date, cell) {
-    if (selectedCell) selectedCell.classList.remove('selected');
-    selectedCell = cell;
-    cell.classList.add('selected');
+    // If a "cell" is passed that isn't a real calendar cell (e.g., from Saved Days list),
+    // don't try to toggle selection classes on it.
+    if (cell && cell.classList && cell.classList.contains('day')) {
+      if (selectedCell) selectedCell.classList.remove('selected');
+      selectedCell = cell;
+      cell.classList.add('selected');
+    } else {
+      if (selectedCell) selectedCell.classList.remove('selected');
+      selectedCell = null;
+    }
 
     selectedDate = date;
 
     calendarView.style.display = 'none';
     dataView.style.display = 'none';
     editorView.style.display = 'block';
-    backBtn.style.display = 'inline-flex';
+    if (backBtn) backBtn.style.display = 'inline-flex';
     headerControls.style.display = 'none';
 
     editorDateTitle.textContent = date.toDateString();
@@ -1242,7 +1256,7 @@
 
   function closeEditor() {
     editorView.style.display = 'none';
-    backBtn.style.display = 'none';
+    if (backBtn) backBtn.style.display = 'none';
     headerControls.style.display = 'flex';
     calendarView.style.display = 'grid';
     renderCalendar();
@@ -1636,6 +1650,26 @@
     });
 
     healthDetailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // --------------------
+  // Mobile back button (header ←)
+  // --------------------
+  function mobileBackToCalendar() {
+    // If editor is open, go back to calendar grid
+    if (editorView.style.display === 'block') {
+      closeEditor();
+      return;
+    }
+
+    // If in data mode, switch back to calendar
+    if (mode === 'data') {
+      setMode('calendar');
+      return;
+    }
+
+    // Default fallback
+    setMode('calendar');
   }
 
   // --------------------
