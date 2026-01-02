@@ -1,4 +1,4 @@
-# Iron-Gate
+# Tower
 
 Personal fitness calendar and workout tracking app.
 
