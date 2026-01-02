@@ -1,1695 +1,511 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Iron-Gate</title>
-
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="Iron-Gate" />
-
-  <style>
-    :root {
-      --bg: #0b0f14;
-      --panel: #121824;
-      --panel2: #0f1520;
-      --border: #253042;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --accent: #c81d25;
-      --shadow: 0 10px 28px rgba(0,0,0,.35);
-      --glass: rgba(18,24,36,.55);
-      --chipbg: rgba(255,255,255,.03);
-      --chipbd: rgba(255,255,255,.10);
-      --safeTop: env(safe-area-inset-top);
-      --safeBot: env(safe-area-inset-bottom);
-    }
-
-    html[data-theme="light"] {
-      --bg: #f4f6fb;
-      --panel: #ffffff;
-      --panel2: #f7f9fe;
-      --border: #d8e0ee;
-      --text: #0b1020;
-      --muted: #4b5b75;
-      --shadow: 0 12px 30px rgba(15, 23, 42, .12);
-      --glass: rgba(255,255,255,.75);
-      --chipbg: rgba(11,16,32,.04);
-      --chipbd: rgba(11,16,32,.10);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background:
-        radial-gradient(1200px 600px at 20% -10%, rgba(200,29,37,.18), transparent 60%),
-        var(--bg);
-      color: var(--text);
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      height: 100vh;
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    aside {
-      background: linear-gradient(180deg, var(--panel), var(--panel2));
-      border-right: 1px solid var(--border);
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      min-height: 0;
-      overflow: auto;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .brand h2 {
-      margin: 0;
-      font-size: 1.05rem;
-      letter-spacing: .8px;
-      text-transform: uppercase;
-      font-weight: 900;
-    }
-
-    .badge {
-      margin-left: auto;
-      font-size: 0.7rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.12);
-      border: 1px solid rgba(255,255,255,.16);
-      color: rgba(255,255,255,.75);
-    }
-
-    html[data-theme="light"] .badge {
-      background: rgba(11,16,32,.05);
-      border-color: rgba(11,16,32,.18);
-      color: rgba(11,16,32,.75);
-    }
-
-    .navTitle {
-      font-size: 0.72rem;
-      letter-spacing: 1.2px;
-      color: rgba(255,255,255,.55);
-      text-transform: uppercase;
-      margin: 6px 0 2px;
-    }
-
-    html[data-theme="light"] .navTitle { color: rgba(11,16,32,.55); }
-
-    .nav button {
-      width: 100%;
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text);
-      text-align: left;
-      padding: 10px 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 900;
-      letter-spacing: .2px;
-    }
-
-    .nav button:hover {
-      border-color: rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-    }
-
-    html[data-theme="light"] .nav button:hover {
-      border-color: rgba(11,16,32,.12);
-      background: rgba(11,16,32,.04);
-    }
-
-    .nav button.active {
-      border-color: rgba(200,29,37,.55);
-      background: rgba(200,29,37,.12);
-    }
-
-    .files {
-      font-size: 0.85rem;
-      color: var(--muted);
-      overflow-y: auto;
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      max-height: 34vh;
-      min-height: 0;
-    }
-
-    .files .item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 6px;
-      background: rgba(255,255,255,.02);
-      border: 1px solid rgba(255,255,255,.06);
-    }
-
-    html[data-theme="light"] .files .item {
-      background: rgba(11,16,32,.02);
-      border-color: rgba(11,16,32,.08);
-    }
-
-    .files .item:hover {
-      background: rgba(255,255,255,.04);
-      border-color: rgba(255,255,255,.10);
-    }
-
-    html[data-theme="light"] .files .item:hover {
-      background: rgba(11,16,32,.04);
-      border-color: rgba(11,16,32,.12);
-    }
-
-    .files .item small { color: rgba(255,255,255,.55); }
-    html[data-theme="light"] .files .item small { color: rgba(11,16,32,.55); }
-
-    main {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    header {
-      padding: calc(10px + var(--safeTop)) 12px 10px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 900;
-      letter-spacing: .3px;
-      background: var(--glass);
-      backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-
-    .headLeft {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .headTitle {
-      font-weight: 900;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .headRight {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 0 0 auto;
-    }
-
-    .hbtn {
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      border-radius: 12px;
-      padding: 8px 10px;
-      font-weight: 900;
-      cursor: pointer;
-    }
-
-    html[data-theme="light"] .hbtn {
-      border-color: rgba(11,16,32,.14);
-      background: rgba(11,16,32,.04);
-      color: rgba(11,16,32,.92);
-    }
-
-    .hamburger { font-size: 18px; line-height: 1; padding: 8px 10px; }
-
-    .content {
-      display: grid;
-      grid-template-rows: 1fr;
-      min-height: 0;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .calendarWrap {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    .weekdayRow {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
-      background: rgba(255,255,255,.06);
-    }
-
-    html[data-theme="light"] .weekdayRow { background: rgba(11,16,32,.08); }
-
-    .weekday {
-      background: var(--glass);
-      padding: 8px 10px;
-      color: rgba(255,255,255,.65);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-
-    html[data-theme="light"] .weekday {
-      color: rgba(11,16,32,.62);
-      border-bottom-color: rgba(11,16,32,.08);
-    }
-
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
-      background: rgba(255,255,255,.06);
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    html[data-theme="light"] .calendar { background: rgba(11,16,32,.08); }
-
-    .day {
-      background: linear-gradient(180deg, var(--panel), var(--panel2));
-      padding: 8px;
-      min-height: 92px;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .day:hover { filter: brightness(1.06); }
-
-    .day.today::after {
-      content: '';
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 9px;
-      height: 9px;
-      background: var(--accent);
-      border-radius: 50%;
-      box-shadow: 0 0 0 3px rgba(200,29,37,.18);
-    }
-
-    .day.selected {
-      outline: 2px solid var(--accent);
-      z-index: 2;
-      box-shadow: 0 0 0 6px rgba(200,29,37,.14);
-    }
-
-    .day strong { font-size: 0.95rem; }
-
-    .day .mini {
-      margin-top: 8px;
-      font-size: 0.72rem;
-      color: rgba(255,255,255,.62);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    html[data-theme="light"] .day .mini { color: rgba(11,16,32,.62); }
-
-    .chip {
-      border: 1px solid var(--chipbd);
-      background: var(--chipbg);
-      padding: 2px 7px;
-      border-radius: 999px;
-    }
-
-    .editorView {
-      display: none;
-      height: 100%;
-      overflow: auto;
-      padding: 14px 14px calc(14px + var(--safeBot));
-      background: linear-gradient(180deg, var(--panel), var(--panel2));
-    }
-
-    .editorCard {
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.12);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: var(--shadow);
-      max-width: 980px;
-      margin: 0 auto;
-    }
-
-    html[data-theme="light"] .editorCard {
-      border-color: rgba(11,16,32,.10);
-      background: rgba(255,255,255,.75);
-    }
-
-    .sectionTitle {
-      margin: 12px 0 6px;
-      font-size: 0.78rem;
-      letter-spacing: 1px;
-      color: rgba(255,255,255,.58);
-      text-transform: uppercase;
-    }
-
-    html[data-theme="light"] .sectionTitle { color: rgba(11,16,32,.55); }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0 10px;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 10px;
-      background: rgba(0,0,0,.14);
-      color: var(--text);
-      font-size: 0.95rem;
-      outline: none;
-    }
-
-    html[data-theme="light"] input,
-    html[data-theme="light"] select {
-      border-color: rgba(11,16,32,.14);
-      background: rgba(11,16,32,.04);
-      color: rgba(11,16,32,.92);
-    }
-
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    /* Exercise cards (multi-set friendly) */
-    .exerciseCard {
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.02);
-      border-radius: 14px;
-      padding: 10px;
-      margin: 10px 0;
-    }
-
-    html[data-theme="light"] .exerciseCard {
-      border-color: rgba(11,16,32,.10);
-      background: rgba(11,16,32,.03);
-    }
-
-    .exerciseTop {
-      display: grid;
-      grid-template-columns: 1fr 42px;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .setList {
-      display: grid;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .setRow {
-      display: grid;
-      grid-template-columns: 1fr 1fr 42px;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .setRow input { margin: 0; }
-
-    .iconBtn {
-      height: 38px;
-      width: 38px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.14);
-      color: rgba(255,255,255,.85);
-      cursor: pointer;
-      font-weight: 900;
-    }
-
-    html[data-theme="light"] .iconBtn {
-      border-color: rgba(11,16,32,.14);
-      background: rgba(11,16,32,.04);
-      color: rgba(11,16,32,.85);
-    }
-
-    .exerciseActions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .btn {
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-weight: 900;
-      cursor: pointer;
-      letter-spacing: .2px;
-    }
-
-    html[data-theme="light"] .btn {
-      border-color: rgba(11,16,32,.14);
-      background: rgba(11,16,32,.04);
-      color: rgba(11,16,32,.92);
-    }
-
-    .btn.primary {
-      background: rgba(200,29,37,.16);
-      border-color: rgba(200,29,37,.55);
-    }
-
-    .dataWrap {
-      padding: 14px 14px calc(14px + var(--safeBot));
-      display: none;
-      overflow: auto;
-      height: 100%;
-    }
-
-    .card {
-      background: linear-gradient(180deg, var(--panel), var(--panel2));
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: var(--shadow);
-      margin-bottom: 14px;
-    }
-
-    html[data-theme="light"] .card { border-color: rgba(11,16,32,.10); }
-
-    .card h3 { margin: 0 0 8px; }
-
-    .list { display: grid; gap: 8px; }
-
-    .list .rowItem {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.02);
-      cursor: pointer;
-    }
-
-    html[data-theme="light"] .list .rowItem {
-      border-color: rgba(11,16,32,.10);
-      background: rgba(11,16,32,.03);
-    }
-
-    .kpi {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .kpi .pill {
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      border-radius: 14px;
-      padding: 10px;
-    }
-
-    html[data-theme="light"] .kpi .pill {
-      border-color: rgba(11,16,32,.10);
-      background: rgba(11,16,32,.03);
-    }
-
-    table { width: 100%; border-collapse: collapse; }
-    th, td {
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      padding: 8px 6px;
-      text-align: left;
-      font-size: 0.9rem;
-      color: rgba(255,255,255,.85);
-    }
-
-    html[data-theme="light"] th, html[data-theme="light"] td {
-      border-bottom-color: rgba(11,16,32,.10);
-      color: rgba(11,16,32,.88);
-    }
-
-    th { color: rgba(255,255,255,.58); font-weight: 900; }
-    html[data-theme="light"] th { color: rgba(11,16,32,.55); }
-
-    /* Drawer (Google Calendar-ish) */
-    .drawerOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.45);
-      display: none;
-      z-index: 50;
-    }
-
-    .drawer {
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      width: min(86vw, 340px);
-      background: linear-gradient(180deg, var(--panel), var(--panel2));
-      border-right: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      transform: translateX(-102%);
-      transition: transform .22s ease;
-      z-index: 60;
-      padding: calc(12px + var(--safeTop)) 12px 12px;
-      overflow: auto;
-    }
-
-    body.drawerOpen .drawerOverlay { display: block; }
-    body.drawerOpen .drawer { transform: translateX(0); }
-
-    .drawer .section {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-    }
-
-    .drawer .collapseBtn {
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      border-radius: 12px;
-      padding: 8px 10px;
-      font-weight: 900;
-      cursor: pointer;
-      width: 100%;
-      text-align: left;
-    }
-
-    html[data-theme="light"] .drawer .collapseBtn {
-      border-color: rgba(11,16,32,.14);
-      background: rgba(11,16,32,.04);
-      color: rgba(11,16,32,.92);
-    }
-
-    .drawer .files { max-height: none; border-top: 0; padding-top: 10px; }
-
-    /* Phone tuning: month view fits without sideways scroll */
-    @media (max-width: 900px) {
-      body { grid-template-columns: 1fr; }
-      aside { display: none; }
-
-      header { padding: calc(10px + var(--safeTop)) 10px 10px; }
-      .hbtn { padding: 7px 9px; border-radius: 11px; }
-
-      .calendarWrap {
-        height: calc(100vh - 56px - var(--safeTop));
-        min-height: 0;
-      }
-
-      .weekday { padding: 6px 6px; font-size: 0.68rem; }
-
-      /* Grid fills remaining height; rows compress to fit */
-      .calendar {
-        height: 100%;
-        grid-auto-rows: 1fr;
-        min-height: 0;
-      }
-
-      .day {
-        min-height: 0;
-        padding: 6px;
-      }
-
-      .day .mini { display: none; }
-
-      .row { grid-template-columns: 1fr; }
-
-      .setRow { grid-template-columns: 1fr 1fr 42px; }
-    }
-
-    /* Single-column layouts for day / 3-day */
-    .singleCol { grid-template-columns: 1fr !important; }
-    .threeCol { grid-template-columns: repeat(3, 1fr) !important; }
-  </style>
-</head>
-<body>
-
-<aside>
-  <div class="brand">
-    <img id="brandLogo" src="logo.png" alt="Iron Gate logo" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)" onerror="this.style.display='none'" />
-    <h2>Iron Gate</h2>
-    <span class="badge">RUGGED</span>
-  </div>
-
-  <div class="navTitle">Mode</div>
-  <div class="nav">
-    <button id="modeCalendar" class="active" onclick="setMode('calendar')">Calendar</button>
-    <button id="modeData" onclick="setMode('data')">Data</button>
-  </div>
-
-  <div class="navTitle">Theme</div>
-  <div class="nav">
-    <button id="themeBtnDesktop" onclick="toggleTheme()">Light Mode</button>
-  </div>
-
-  <div id="calendarControls">
-    <div class="navTitle">View</div>
-    <div class="nav">
-      <button id="viewMonth" class="active" onclick="setView('month', this)">Month</button>
-      <button id="view3" onclick="setView('3day', this)">3 Day</button>
-      <button id="viewWeek" onclick="setView('week', this)">7 Day</button>
-      <button id="viewDay" onclick="setView('day', this)">Day</button>
-    </div>
-
-    <div class="navTitle">Saved Days</div>
-    <div class="nav">
-      <button onclick="toggleSavedDays('desktop')" id="savedToggleDesktop">Show Saved Days</button>
-    </div>
-
-    <div class="files" id="filesDesktop" style="display:none">
-      <div id="filesListDesktop"></div>
-    </div>
-  </div>
-
-  <div id="dataControls" style="display:none">
-    <div class="navTitle">Data</div>
-    <div class="nav">
-      <button id="dataExercisesBtn" class="active" onclick="setDataTab('exercises')">Exercises</button>
-      <button id="dataHealthBtn" onclick="setDataTab('health')">Health</button>
-    </div>
-  </div>
-</aside>
-
-<div class="drawerOverlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="brand" style="border-bottom:1px solid var(--border); padding-bottom:12px;">
-    <img src="logo.png" alt="Iron Gate logo" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.2)" onerror="this.style.display='none'" />
-    <h2 style="margin:0">Iron Gate</h2>
-    <span class="badge">RUGGED</span>
-  </div>
-
-  <div class="section">
-    <div class="navTitle">Mode</div>
-    <div class="nav">
-      <button id="mModeCalendar" class="active" onclick="setMode('calendar'); closeDrawer();">Calendar</button>
-      <button id="mModeData" onclick="setMode('data'); closeDrawer();">Data</button>
-    </div>
-  </div>
-
-  <div class="section" id="drawerCalendarSection">
-    <div class="navTitle">View</div>
-    <div class="nav">
-      <button id="mViewMonth" class="active" onclick="setView('month', this); closeDrawer();">Month</button>
-      <button id="mView3" onclick="setView('3day', this); closeDrawer();">3 Day</button>
-      <button id="mViewWeek" onclick="setView('week', this); closeDrawer();">7 Day</button>
-      <button id="mViewDay" onclick="setView('day', this); closeDrawer();">Day</button>
-    </div>
-  </div>
-
-  <div class="section" id="drawerDataSection" style="display:none">
-    <div class="navTitle">Data</div>
-    <div class="nav">
-      <button id="mDataExercises" class="active" onclick="setDataTab('exercises'); closeDrawer();">Exercises</button>
-      <button id="mDataHealth" onclick="setDataTab('health'); closeDrawer();">Health</button>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="navTitle">Theme</div>
-    <div class="nav">
-      <button id="themeBtnMobile" onclick="toggleTheme()">Light Mode</button>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="navTitle" style="margin:0;">Saved Days</div>
-    <button class="collapseBtn" id="savedToggleMobile" onclick="toggleSavedDays('mobile')">Show Saved Days</button>
-    <div class="files" id="filesMobile" style="display:none">
-      <div id="filesListMobile"></div>
-    </div>
-  </div>
-</div>
-
-<main>
-  <header>
-    <div class="headLeft">
-      <button id="mobileBack" class="hbtn" style="display:none" onclick="mobileBackToCalendar()">←</button>
-      <div class="headTitle" id="headerTitle">—</div>
-    </div>
-    <div class="headRight" id="headerControls">
-      <button class="hbtn" onclick="goToday()">Today</button>
-      <button class="hbtn" onclick="prevPeriod()">◀</button>
-      <button class="hbtn" onclick="nextPeriod()">▶</button>
-      <button class="hbtn" id="menuBtn" onclick="toggleDrawer()">☰</button>
-    </div>
-  </header>
-
-  <div class="content">
-    <div id="calendarView" class="calendarWrap" style="display:block;">
-      <div class="weekdayRow" id="weekdayRow"></div>
-      <div class="calendar" id="calendar"></div>
-    </div>
-
-    <div id="editorView" class="editorView">
-      <div class="editorCard">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <div>
-            <div style="font-weight:900;font-size:1.1rem;" id="editorDateTitle">—</div>
-            <div style="color:var(--muted); font-size:.9rem; margin-top:4px;">Everything saves to your device automatically.</div>
-          </div>
-          <div class="exerciseActions" style="margin-top:0;">
-            <button class="btn primary" onclick="saveDay()">Save</button>
-            <button class="btn" onclick="clearDay()">Clear</button>
-          </div>
-        </div>
-
-        <div class="sectionTitle">Workouts</div>
-        <div id="workoutRows"></div>
-        <div class="exerciseActions">
-          <button class="btn" onclick="addExerciseCard()">+ Add Exercise</button>
-        </div>
-
-        <div class="sectionTitle">Body Measurements</div>
-        <div class="row">
-          <input id="bodyweight" placeholder="Body Weight" inputmode="decimal" />
-          <input id="rbicep" placeholder="Right Bicep" inputmode="decimal" />
-        </div>
-        <div class="row">
-          <input id="lbicep" placeholder="Left Bicep" inputmode="decimal" />
-          <input id="rcalf" placeholder="Right Calf" inputmode="decimal" />
-        </div>
-        <input id="lcalf" placeholder="Left Calf" inputmode="decimal" />
-
-        <div class="sectionTitle">Diet & Recovery</div>
-        <div class="row">
-          <input id="protein" placeholder="Protein (g)" inputmode="numeric" />
-          <input id="calories" placeholder="Calories" inputmode="numeric" />
-        </div>
-        <div class="row">
-          <input id="water" placeholder="Water (cups)" inputmode="decimal" />
-          <input id="sleep" placeholder="Sleep (hrs)" inputmode="decimal" />
-        </div>
-        <select id="stool">
-          <option value="">Bowel Movement?</option>
-          <option>Yes</option>
-          <option>No</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="dataView" class="dataWrap">
-      <div id="dataExercises" style="display:block">
-        <div class="card">
-          <h3>Top Lifts</h3>
-          <div class="kpi">
-            <div class="pill">
-              <div style="color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Volume</div>
-              <div id="topVolume" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div>
-              <div id="topVolumeSub" style="color:var(--muted); margin-top:4px; font-size:.9rem;">—</div>
-            </div>
-            <div class="pill">
-              <div style="color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Top Max Weight</div>
-              <div id="topMax" style="font-weight:900; font-size:1.05rem; margin-top:6px;">—</div>
-              <div id="topMaxSub" style="color:var(--muted); margin-top:4px; font-size:.9rem;">—</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Exercises</h3>
-          <div class="list" id="exerciseList"></div>
-        </div>
-
-        <div class="card" id="exerciseDetailCard" style="display:none">
-          <h3 id="exerciseDetailTitle">Exercise</h3>
-          <div id="exerciseDetailSummary" style="color:var(--muted); margin:6px 0 10px;"></div>
-          <table>
-            <thead><tr><th>Date</th><th>Set</th><th>Reps</th><th>Weight</th></tr></thead>
-            <tbody id="exerciseDetailTable"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="dataHealth" style="display:none">
-        <div class="card">
-          <h3>Averages</h3>
-          <div id="healthAverages" style="color:var(--text)">—</div>
-          <div id="healthAveragesSub" style="color:var(--muted); margin-top:6px;">—</div>
-        </div>
-
-        <div class="card">
-          <h3>Health Metrics</h3>
-          <div class="list" id="healthMetricList"></div>
-        </div>
-
-        <div class="card" id="healthDetailCard" style="display:none">
-          <h3 id="healthDetailTitle">Metric</h3>
-          <table>
-            <thead><tr><th>Date</th><th>Value</th></tr></thead>
-            <tbody id="healthDetailTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<script>
-  // --------------------
-  // Exercise Library (includes Sauna)
-  // --------------------
-  const EXERCISES = [
-    'Bench Press','DB Press','Cable Fly','Barbell Shoulder Press','DB Shoulder Press',
-    'Back Squat','Front Squat','Hack Squat','Leg Press','Hamstring Curl','Leg Extension',
-    'Standing Calf Raise','Seated Calf Raise','Pull-Up','Dips','Pull-Down',
-    'Bicep Curl','Preacher Curl','Triceps Push-Down',
-    'Sauna'
-  ];
-
-  // --------------------
-  // DOM
-  // --------------------
-  const calendar = document.getElementById('calendar');
-  const weekdayRow = document.getElementById('weekdayRow');
-
-  const filesListDesktop = document.getElementById('filesListDesktop');
-  const filesListMobile = document.getElementById('filesListMobile');
-
-  const calendarView = document.getElementById('calendarView');
-  const editorView = document.getElementById('editorView');
-  const dataView = document.getElementById('dataView');
-
-  const calendarControls = document.getElementById('calendarControls');
-  const dataControls = document.getElementById('dataControls');
-
-  const headerTitle = document.getElementById('headerTitle');
-  const headerControls = document.getElementById('headerControls');
-  const backBtn = document.getElementById('mobileBack');
-  const editorDateTitle = document.getElementById('editorDateTitle');
-  const workoutRows = document.getElementById('workoutRows');
-
-  const dataExercises = document.getElementById('dataExercises');
-  const dataHealth = document.getElementById('dataHealth');
-
-  const exerciseList = document.getElementById('exerciseList');
-  const exerciseDetailCard = document.getElementById('exerciseDetailCard');
-  const exerciseDetailTitle = document.getElementById('exerciseDetailTitle');
-  const exerciseDetailSummary = document.getElementById('exerciseDetailSummary');
-  const exerciseDetailTable = document.getElementById('exerciseDetailTable');
-
-  const topVolume = document.getElementById('topVolume');
-  const topVolumeSub = document.getElementById('topVolumeSub');
-  const topMax = document.getElementById('topMax');
-  const topMaxSub = document.getElementById('topMaxSub');
-
-  const healthAverages = document.getElementById('healthAverages');
-  const healthAveragesSub = document.getElementById('healthAveragesSub');
-  const healthMetricList = document.getElementById('healthMetricList');
-  const healthDetailCard = document.getElementById('healthDetailCard');
-  const healthDetailTitle = document.getElementById('healthDetailTitle');
-  const healthDetailTable = document.getElementById('healthDetailTable');
-
-  const drawerCalendarSection = document.getElementById('drawerCalendarSection');
-  const drawerDataSection = document.getElementById('drawerDataSection');
-
-  // --------------------
-  // State
-  // --------------------
-  let mode = 'calendar';
-  let dataTab = 'exercises';
-  let view = 'month';
-  let selectedCell = null;
-  let selectedDate = new Date();
-
-  let savedVisibleDesktop = false;
-  let savedVisibleMobile = false;
-
-  // --------------------
-  // Theme
-  // --------------------
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('ig_theme', theme);
-    const label = theme === 'light' ? 'Dark Mode' : 'Light Mode';
-    const d = document.getElementById('themeBtnDesktop');
-    const m = document.getElementById('themeBtnMobile');
-    if (d) d.textContent = label;
-    if (m) m.textContent = label;
-  }
-
-  function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    applyTheme(current === 'light' ? 'dark' : 'light');
-  }
-
-  // --------------------
-  // Drawer
-  // --------------------
-  function toggleDrawer() {
-    document.body.classList.toggle('drawerOpen');
-  }
-
-  function closeDrawer() {
-    document.body.classList.remove('drawerOpen');
-  }
-
-  // --------------------
-  // Helpers
-  // --------------------
-  function dateKey(d) { return d.toISOString().split('T')[0]; }
-  function isDateKey(k) { return /^\d{4}-\d{2}-\d{2}$/.test(k); }
-  function safeNum(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
-  function getAllDateKeys() { return Object.keys(localStorage).filter(isDateKey).sort(); }
-
-  function loadEntry(key) {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    try {
-      const parsed = JSON.parse(raw);
-      // Migration: old workouts[] with sets/reps/weight -> new workouts[] with sets[]
-      if (parsed && Array.isArray(parsed.workouts) && parsed.workouts.length && parsed.workouts[0] && !Array.isArray(parsed.workouts[0].sets)) {
-        const migrated = {
-          workouts: parsed.workouts.map(w => ({
-            exercise: w.exercise || EXERCISES[0],
-            sets: [{ reps: w.reps ?? '', weight: w.weight ?? '' }].filter(s => String(s.reps).length || String(s.weight).length)
-          })),
-          health: parsed.health && typeof parsed.health === 'object' ? parsed.health : {}
-        };
-        return migrated;
-      }
-      // Migration: very old flat health
-      if (parsed && !parsed.workouts && !parsed.health) return { workouts: [], health: parsed };
-
-      return {
-        workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
-        health: parsed.health && typeof parsed.health === 'object' ? parsed.health : {}
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  function saveEntry(key, entry) {
-    localStorage.setItem(key, JSON.stringify(entry));
-  }
-
-  function fmtMonthYear(d) {
-    return d.toLocaleString('default', { month: 'long', year: 'numeric' });
-  }
-
-  function weekdaysHeader() {
-    const names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    weekdayRow.innerHTML = '';
-    names.forEach(n => {
-      const el = document.createElement('div');
-      el.className = 'weekday';
-      el.textContent = n;
-      weekdayRow.appendChild(el);
-    });
-  }
-
-  // --------------------
-  // Mode / Tabs
-  // --------------------
-  function setMode(next) {
-    mode = next;
-
-    document.getElementById('modeCalendar').classList.toggle('active', next === 'calendar');
-    document.getElementById('modeData').classList.toggle('active', next === 'data');
-
-    document.getElementById('mModeCalendar').classList.toggle('active', next === 'calendar');
-    document.getElementById('mModeData').classList.toggle('active', next === 'data');
-
-    const isPhone = window.matchMedia('(max-width: 900px)').matches;
-
-    if (mode === 'calendar') {
-      calendarControls.style.display = 'block';
-      dataControls.style.display = 'none';
-      drawerCalendarSection.style.display = 'block';
-      drawerDataSection.style.display = 'none';
-
-      dataView.style.display = 'none';
-      editorView.style.display = 'none';
-      calendarView.style.display = 'grid';
-
-      if (backBtn) backBtn.style.display = 'none';
-      headerControls.style.display = 'flex';
-
-      renderCalendar();
+import React, { useState, useEffect } from 'react';
+import { Calendar, Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, Plus, Trash2 } from 'lucide-react';
+
+const FitnessApp = () => {
+  const [darkMode, setDarkMode] = useState(false);
+  const [currentView, setCurrentView] = useState('calendar');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [calendarData, setCalendarData] = useState({});
+  const [showDayModal, setShowDayModal] = useState(false);
+  
+  // Modal state for day details
+  const [workoutPlan, setWorkoutPlan] = useState([]);
+  const [foodEntries, setFoodEntries] = useState([]);
+  const [dailyMetrics, setDailyMetrics] = useState({
+    weight: '',
+    sleep: '',
+    water: '',
+    calories: ''
+  });
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    return { daysInMonth, startingDayOfWeek };
+  };
+
+  const formatDateKey = (date) => {
+    return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  };
+
+  const getCalendarDataForDate = (date) => {
+    const key = formatDateKey(date);
+    return calendarData[key] || null;
+  };
+
+  const handleDateClick = (day) => {
+    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    setSelectedDate(clickedDate);
+    
+    const existingData = getCalendarDataForDate(clickedDate);
+    if (existingData) {
+      setWorkoutPlan(existingData.workouts || []);
+      setFoodEntries(existingData.food || []);
+      setDailyMetrics(existingData.metrics || { weight: '', sleep: '', water: '', calories: '' });
     } else {
-      calendarControls.style.display = 'none';
-      dataControls.style.display = 'block';
-      drawerCalendarSection.style.display = 'none';
-      drawerDataSection.style.display = 'block';
-
-      calendarView.style.display = 'none';
-      editorView.style.display = 'none';
-      dataView.style.display = 'block';
-
-      // On phone, show a back arrow to return to Calendar (Google Calendar-ish)
-      if (backBtn) backBtn.style.display = isPhone ? 'inline-flex' : 'none';
-      headerControls.style.display = 'none';
-
-      renderData();
+      setWorkoutPlan([]);
+      setFoodEntries([]);
+      setDailyMetrics({ weight: '', sleep: '', water: '', calories: '' });
     }
-  }
-
-  function setDataTab(tab) {
-    dataTab = tab;
-    document.getElementById('dataExercisesBtn').classList.toggle('active', tab === 'exercises');
-    document.getElementById('dataHealthBtn').classList.toggle('active', tab === 'health');
-
-    document.getElementById('mDataExercises').classList.toggle('active', tab === 'exercises');
-    document.getElementById('mDataHealth').classList.toggle('active', tab === 'health');
-
-    renderData();
-  }
-
-  function setView(v, btn) {
-    view = v;
-
-    const desktopBtns = [document.getElementById('viewMonth'), document.getElementById('view3'), document.getElementById('viewWeek'), document.getElementById('viewDay')].filter(Boolean);
-    desktopBtns.forEach(b => b.classList.remove('active'));
-    if (btn && btn.id && btn.id.startsWith('view')) btn.classList.add('active');
-
-    const mobileBtns = [document.getElementById('mViewMonth'), document.getElementById('mView3'), document.getElementById('mViewWeek'), document.getElementById('mViewDay')].filter(Boolean);
-    mobileBtns.forEach(b => b.classList.remove('active'));
-    if (btn && btn.id && btn.id.startsWith('mView')) btn.classList.add('active');
-
-    renderCalendar();
-  }
-
-  // --------------------
-  // Header Controls
-  // --------------------
-  function goToday() {
-    selectedDate = new Date();
-    renderCalendar();
-  }
-
-  function prevPeriod() {
-    if (view === 'month') selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
-    else if (view === 'week') { const d = new Date(selectedDate); d.setDate(d.getDate() - 7); selectedDate = d; }
-    else if (view === '3day') { const d = new Date(selectedDate); d.setDate(d.getDate() - 3); selectedDate = d; }
-    else { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); selectedDate = d; }
-    renderCalendar();
-  }
-
-  function nextPeriod() {
-    if (view === 'month') selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1);
-    else if (view === 'week') { const d = new Date(selectedDate); d.setDate(d.getDate() + 7); selectedDate = d; }
-    else if (view === '3day') { const d = new Date(selectedDate); d.setDate(d.getDate() + 3); selectedDate = d; }
-    else { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); selectedDate = d; }
-    renderCalendar();
-  }
-
-  // --------------------
-  // Calendar Render
-  // --------------------
-  function renderCalendar() {
-    weekdaysHeader();
-    calendar.innerHTML = '';
-
-    calendar.classList.remove('singleCol','threeCol');
-
-    if (view === 'day') {
-      weekdayRow.style.display = 'none';
-      calendar.classList.add('singleCol');
-    } else if (view === '3day') {
-      weekdayRow.style.display = 'none';
-      calendar.classList.add('threeCol');
-    } else {
-      weekdayRow.style.display = 'grid';
-    }
-
-    if (view === 'month') headerTitle.textContent = fmtMonthYear(selectedDate);
-    else if (view === 'week') {
-      const start = new Date(selectedDate); start.setDate(start.getDate() - start.getDay());
-      const end = new Date(start); end.setDate(end.getDate() + 6);
-      headerTitle.textContent = `7 Day: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-    } else if (view === '3day') {
-      const start = new Date(selectedDate);
-      const end = new Date(start); end.setDate(end.getDate() + 2);
-      headerTitle.textContent = `3 Day: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-    } else {
-      headerTitle.textContent = selectedDate.toDateString();
-    }
-
-    if (view === 'month') renderMonth();
-    if (view === 'week') renderWeek();
-    if (view === '3day') render3Day();
-    if (view === 'day') renderDay();
-
-    loadSavedLists();
-  }
-
-  function renderMonth() {
-    const y = selectedDate.getFullYear();
-    const m = selectedDate.getMonth();
-    const first = new Date(y, m, 1);
-    const last = new Date(y, m + 1, 0);
-
-    for (let i = 0; i < first.getDay(); i++) calendar.appendChild(document.createElement('div'));
-    for (let d = 1; d <= last.getDate(); d++) addDayCell(new Date(y, m, d));
-  }
-
-  function renderWeek() {
-    const start = new Date(selectedDate);
-    start.setDate(start.getDate() - start.getDay());
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(start);
-      date.setDate(start.getDate() + i);
-      addDayCell(date);
-    }
-  }
-
-  function render3Day() {
-    for (let i = 0; i < 3; i++) {
-      const date = new Date(selectedDate);
-      date.setDate(selectedDate.getDate() + i);
-      addDayCell(date);
-    }
-  }
-
-  function renderDay() {
-    addDayCell(selectedDate);
-  }
-
-  function addDayCell(date) {
-    const cell = document.createElement('div');
-    cell.className = 'day';
-
-    const key = dateKey(date);
-    const entry = loadEntry(key);
-
-    let mini = '';
-    if (entry && entry.workouts && entry.workouts.length && view !== 'month') {
-      const exCount = entry.workouts.length;
-      const totalSets = entry.workouts.reduce((s,w)=> s + (Array.isArray(w.sets) ? w.sets.length : 0), 0);
-      const totalReps = entry.workouts.reduce((s,w)=> s + (Array.isArray(w.sets) ? w.sets.reduce((ss,set)=>ss+safeNum(set.reps),0) : 0), 0);
-      mini = `<div class="mini"><span class="chip">${exCount} exercises</span><span class="chip">${totalSets} sets</span><span class="chip">${totalReps} reps</span></div>`;
-    }
-
-    cell.innerHTML = `<strong>${date.getDate()}</strong>${mini}`;
-
-    if (date.toDateString() === new Date().toDateString()) cell.classList.add('today');
-
-    cell.onclick = () => openEditor(date, cell);
-    calendar.appendChild(cell);
-
-    if (date.toDateString() === selectedDate.toDateString()) {
-      if (selectedCell) selectedCell.classList.remove('selected');
-      selectedCell = cell;
-      cell.classList.add('selected');
-    }
-  }
-
-  // --------------------
-  // Editor
-  // --------------------
-  function openEditor(date, cell) {
-    // If a "cell" is passed that isn't a real calendar cell (e.g., from Saved Days list),
-    // don't try to toggle selection classes on it.
-    if (cell && cell.classList && cell.classList.contains('day')) {
-      if (selectedCell) selectedCell.classList.remove('selected');
-      selectedCell = cell;
-      cell.classList.add('selected');
-    } else {
-      if (selectedCell) selectedCell.classList.remove('selected');
-      selectedCell = null;
-    }
-
-    selectedDate = date;
-
-    calendarView.style.display = 'none';
-    dataView.style.display = 'none';
-    editorView.style.display = 'block';
-    if (backBtn) backBtn.style.display = 'inline-flex';
-    headerControls.style.display = 'none';
-
-    editorDateTitle.textContent = date.toDateString();
-    headerTitle.textContent = date.toDateString();
-
-    const key = dateKey(date);
-    const entry = loadEntry(key) || { workouts: [], health: {} };
-
-    workoutRows.innerHTML = '';
-    if (entry.workouts.length) entry.workouts.forEach(w => addExerciseCard(w));
-    else addExerciseCard();
-
-    const healthFields = ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'];
-    healthFields.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.value = entry.health?.[id] ?? '';
-    });
-  }
-
-  function closeEditor() {
-    editorView.style.display = 'none';
-    if (backBtn) backBtn.style.display = 'none';
-    headerControls.style.display = 'flex';
-    calendarView.style.display = 'grid';
-    renderCalendar();
-  }
-
-  // --------------------
-  // Workouts (Exercise Card + Set rows)
-  // --------------------
-  function makeExerciseSelect(value) {
-    const sel = document.createElement('select');
-    EXERCISES.forEach(name => {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      sel.appendChild(opt);
-    });
-    if (value) sel.value = value;
-    return sel;
-  }
-
-  function addSetRow(setListEl, initial = null) {
-    const r = document.createElement('div');
-    r.className = 'setRow';
-
-    const reps = document.createElement('input');
-    reps.placeholder = 'Reps (or minutes)';
-    reps.inputMode = 'numeric';
-    reps.value = initial?.reps ?? '';
-
-    const weight = document.createElement('input');
-    weight.placeholder = 'Weight (blank for Sauna)';
-    weight.inputMode = 'decimal';
-    weight.value = initial?.weight ?? '';
-
-    const del = document.createElement('button');
-    del.className = 'iconBtn';
-    del.textContent = '×';
-    del.title = 'Remove set';
-    del.onclick = () => r.remove();
-
-    r.appendChild(reps);
-    r.appendChild(weight);
-    r.appendChild(del);
-    setListEl.appendChild(r);
-  }
-
-  function addExerciseCard(initial = null) {
-    const card = document.createElement('div');
-    card.className = 'exerciseCard';
-
-    const top = document.createElement('div');
-    top.className = 'exerciseTop';
-
-    const sel = makeExerciseSelect(initial?.exercise || EXERCISES[0]);
-
-    const delExercise = document.createElement('button');
-    delExercise.className = 'iconBtn';
-    delExercise.textContent = '×';
-    delExercise.title = 'Remove exercise';
-    delExercise.onclick = () => card.remove();
-
-    top.appendChild(sel);
-    top.appendChild(delExercise);
-
-    const setList = document.createElement('div');
-    setList.className = 'setList';
-
-    // seed sets
-    const sets = Array.isArray(initial?.sets) ? initial.sets : [];
-    if (sets.length) sets.forEach(s => addSetRow(setList, s));
-    else addSetRow(setList);
-
-    const actions = document.createElement('div');
-    actions.className = 'exerciseActions';
-
-    const addSetBtn = document.createElement('button');
-    addSetBtn.className = 'btn';
-    addSetBtn.textContent = '+ Add Set';
-    addSetBtn.onclick = () => addSetRow(setList);
-
-    actions.appendChild(addSetBtn);
-
-    card.appendChild(top);
-    card.appendChild(setList);
-    card.appendChild(actions);
-
-    workoutRows.appendChild(card);
-  }
-
-  // --------------------
-  // Save / Clear
-  // --------------------
-  function saveDay() {
-    const key = dateKey(selectedDate);
-
-    const workouts = [];
-    workoutRows.querySelectorAll('.exerciseCard').forEach(card => {
-      const sel = card.querySelector('select');
-      const setRows = Array.from(card.querySelectorAll('.setRow'));
-      const sets = setRows.map(r => {
-        const inputs = r.querySelectorAll('input');
-        return { reps: inputs[0]?.value ?? '', weight: inputs[1]?.value ?? '' };
-      }).filter(s => String(s.reps).length || String(s.weight).length);
-
-      if (sel?.value && sets.length) workouts.push({ exercise: sel.value, sets });
-    });
-
-    const health = {};
-    ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'].forEach(id => {
-      const el = document.getElementById(id);
-      health[id] = el ? el.value : '';
-    });
-
-    saveEntry(key, { workouts, health });
-
-    loadSavedLists();
-    if (mode === 'data') renderData();
-  }
-
-  function clearDay() {
-    const key = dateKey(selectedDate);
-    localStorage.removeItem(key);
-
-    workoutRows.innerHTML = '';
-    addExerciseCard();
-
-    ['bodyweight','rbicep','lbicep','rcalf','lcalf','protein','calories','water','sleep','stool'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-
-    loadSavedLists();
-    if (mode === 'data') renderData();
-  }
-
-  // --------------------
-  // Saved Days (hidden until toggled)
-  // --------------------
-  function toggleSavedDays(which) {
-    if (which === 'desktop') {
-      savedVisibleDesktop = !savedVisibleDesktop;
-      document.getElementById('filesDesktop').style.display = savedVisibleDesktop ? 'block' : 'none';
-      document.getElementById('savedToggleDesktop').textContent = savedVisibleDesktop ? 'Hide Saved Days' : 'Show Saved Days';
-      if (savedVisibleDesktop) loadSavedLists();
-    } else {
-      savedVisibleMobile = !savedVisibleMobile;
-      document.getElementById('filesMobile').style.display = savedVisibleMobile ? 'block' : 'none';
-      document.getElementById('savedToggleMobile').textContent = savedVisibleMobile ? 'Hide Saved Days' : 'Show Saved Days';
-      if (savedVisibleMobile) loadSavedLists();
-    }
-  }
-
-  function loadSavedLists() {
-    const keys = getAllDateKeys().slice().reverse();
-
-    const renderInto = (container) => {
-      if (!container) return;
-      container.innerHTML = '';
-      if (!keys.length) {
-        const empty = document.createElement('div');
-        empty.style.color = 'rgba(255,255,255,.45)';
-        empty.style.padding = '10px 4px';
-        empty.textContent = 'No saved days yet.';
-        if (document.documentElement.getAttribute('data-theme') === 'light') empty.style.color = 'rgba(11,16,32,.55)';
-        container.appendChild(empty);
-        return;
+    
+    setShowDayModal(true);
+  };
+
+  const saveDayData = () => {
+    const key = formatDateKey(selectedDate);
+    const newData = {
+      ...calendarData,
+      [key]: {
+        workouts: workoutPlan,
+        food: foodEntries,
+        metrics: dailyMetrics,
+        saved: true,
+        date: selectedDate.toISOString()
       }
-
-      keys.forEach(k => {
-        const entry = loadEntry(k);
-        const div = document.createElement('div');
-        div.className = 'item';
-
-        const left = document.createElement('div');
-        left.innerHTML = `<div style="color:var(--text); font-weight:900;">${k}</div>`;
-
-        let meta = 'Saved';
-        if (entry?.workouts?.length) {
-          const exCount = entry.workouts.length;
-          const setCount = entry.workouts.reduce((s,w)=> s + (Array.isArray(w.sets) ? w.sets.length : 0), 0);
-          const repCount = entry.workouts.reduce((s,w)=> s + (Array.isArray(w.sets) ? w.sets.reduce((ss,set)=>ss+safeNum(set.reps),0) : 0), 0);
-          meta = `${exCount} ex · ${setCount} sets · ${repCount} reps`;
-        }
-        left.innerHTML += `<small>${meta}</small>`;
-
-        const go = document.createElement('div');
-        go.textContent = '›';
-        go.style.color = 'rgba(255,255,255,.55)';
-        if (document.documentElement.getAttribute('data-theme') === 'light') go.style.color = 'rgba(11,16,32,.55)';
-        go.style.fontWeight = '900';
-
-        div.appendChild(left);
-        div.appendChild(go);
-
-        div.onclick = () => {
-          selectedDate = new Date(k + 'T12:00:00');
-          if (mode !== 'calendar') setMode('calendar');
-          renderCalendar();
-          // open editor without needing exact cell
-          openEditor(selectedDate, (selectedCell || document.createElement('div')));
-          closeDrawer();
-        };
-
-        container.appendChild(div);
-      });
     };
+    setCalendarData(newData);
+    setShowDayModal(false);
+    alert('Day saved successfully!');
+  };
 
-    // Only render lists if visible
-    if (savedVisibleDesktop) renderInto(filesListDesktop);
-    if (savedVisibleMobile) renderInto(filesListMobile);
-  }
+  const addWorkout = () => {
+    setWorkoutPlan([...workoutPlan, { exercise: '', sets: '', reps: '' }]);
+  };
 
-  // --------------------
-  // Aggregation for Data
-  // --------------------
-  function aggregate() {
-    const agg = {};
-    EXERCISES.forEach(e => agg[e] = { sets: 0, reps: 0, maxWeight: 0, history: [] });
+  const updateWorkout = (index, field, value) => {
+    const updated = [...workoutPlan];
+    updated[index][field] = value;
+    setWorkoutPlan(updated);
+  };
 
-    const healthSeries = {
-      bodyweight: [], rbicep: [], lbicep: [], rcalf: [], lcalf: [],
-      protein: [], calories: [], water: [], sleep: [], stool: []
+  const removeWorkout = (index) => {
+    setWorkoutPlan(workoutPlan.filter((_, i) => i !== index));
+  };
+
+  const addFood = () => {
+    setFoodEntries([...foodEntries, { name: '', calories: '' }]);
+  };
+
+  const updateFood = (index, field, value) => {
+    const updated = [...foodEntries];
+    updated[index][field] = value;
+    setFoodEntries(updated);
+  };
+
+  const removeFood = (index) => {
+    setFoodEntries(foodEntries.filter((_, i) => i !== index));
+  };
+
+  const calculateHealthAverages = () => {
+    const savedDays = Object.values(calendarData).filter(d => d.saved && d.metrics);
+    const count = savedDays.length;
+    
+    if (count === 0) return { weight: 0, sleep: 0, water: 0, calories: 0 };
+    
+    const totals = savedDays.reduce((acc, day) => ({
+      weight: acc.weight + (parseFloat(day.metrics.weight) || 0),
+      sleep: acc.sleep + (parseFloat(day.metrics.sleep) || 0),
+      water: acc.water + (parseFloat(day.metrics.water) || 0),
+      calories: acc.calories + (parseFloat(day.metrics.calories) || 0)
+    }), { weight: 0, sleep: 0, water: 0, calories: 0 });
+
+    return {
+      weight: (totals.weight / count).toFixed(1),
+      sleep: (totals.sleep / count).toFixed(1),
+      water: (totals.water / count).toFixed(0),
+      calories: (totals.calories / count).toFixed(0)
     };
+  };
 
-    const keys = getAllDateKeys();
-    keys.forEach(k => {
-      const entry = loadEntry(k);
-      if (!entry) return;
+  const getMostRecentMetrics = () => {
+    const savedDays = Object.entries(calendarData)
+      .filter(([_, d]) => d.saved && d.metrics)
+      .sort(([_, a], [__, b]) => new Date(b.date) - new Date(a.date));
+    
+    return savedDays.length > 0 ? savedDays[0][1] : null;
+  };
 
-      (entry.workouts || []).forEach(w => {
-        if (!w.exercise || !agg[w.exercise]) return;
-        const sets = Array.isArray(w.sets) ? w.sets : [];
-
-        agg[w.exercise].sets += sets.length;
-        sets.forEach((s, idx) => {
-          const reps = safeNum(s.reps);
-          const weight = safeNum(s.weight);
-          agg[w.exercise].reps += reps;
-          agg[w.exercise].maxWeight = Math.max(agg[w.exercise].maxWeight, weight);
-          agg[w.exercise].history.push({ date: k, setIndex: idx + 1, reps, weight });
+  const getTopExerciseMetrics = () => {
+    const exercises = {};
+    Object.values(calendarData).forEach(day => {
+      if (day.workouts) {
+        day.workouts.forEach(w => {
+          const key = w.exercise.toLowerCase();
+          if (!exercises[key] || parseInt(w.sets) * parseInt(w.reps) > exercises[key].total) {
+            exercises[key] = {
+              name: w.exercise,
+              sets: w.sets,
+              reps: w.reps,
+              total: parseInt(w.sets) * parseInt(w.reps)
+            };
+          }
         });
-      });
-
-      const h = entry.health || {};
-      Object.keys(healthSeries).forEach(id => {
-        const v = h[id];
-        if (v !== undefined && v !== null && String(v).length) {
-          healthSeries[id].push({ date: k, value: v });
-        }
-      });
+      }
     });
+    return Object.values(exercises).slice(0, 5);
+  };
 
-    return { agg, healthSeries };
-  }
+  const getNextPlannedWorkout = () => {
+    const today = new Date();
+    const futureDays = Object.entries(calendarData)
+      .filter(([_, d]) => new Date(d.date) >= today && d.workouts && d.workouts.length > 0)
+      .sort(([_, a], [__, b]) => new Date(a.date) - new Date(b.date));
+    
+    return futureDays.length > 0 ? futureDays[0][1] : null;
+  };
 
-  function renderData() {
-    headerTitle.textContent = dataTab === 'exercises' ? 'Data · Exercises' : 'Data · Health';
-
-    dataExercises.style.display = dataTab === 'exercises' ? 'block' : 'none';
-    dataHealth.style.display = dataTab === 'health' ? 'block' : 'none';
-
-    const { agg, healthSeries } = aggregate();
-
-    if (dataTab === 'exercises') {
-      exerciseDetailCard.style.display = 'none';
-      exerciseList.innerHTML = '';
-
-      let bestVol = { name: '—', score: -1, sets: 0, reps: 0 };
-      let bestMax = { name: '—', max: -1 };
-
-      EXERCISES.forEach(name => {
-        const a = agg[name];
-        const score = a.sets + a.reps;
-        if (score > bestVol.score) bestVol = { name, score, sets: a.sets, reps: a.reps };
-        if (a.maxWeight > bestMax.max) bestMax = { name, max: a.maxWeight };
-
-        const row = document.createElement('div');
-        row.className = 'rowItem';
-        row.innerHTML = `
-          <div>
-            <div style="font-weight:900;">${name}</div>
-            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">${a.sets} sets · ${a.reps} reps · max ${a.maxWeight || 0}</div>
-          </div>
-          <div style="color:var(--muted); font-weight:900;">›</div>
-        `;
-        row.onclick = () => showExerciseDetail(name, agg[name]);
-        exerciseList.appendChild(row);
-      });
-
-      topVolume.textContent = bestVol.name;
-      topVolumeSub.textContent = `${bestVol.sets} sets · ${bestVol.reps} reps`;
-
-      topMax.textContent = bestMax.name;
-      topMaxSub.textContent = `max ${bestMax.max < 0 ? 0 : bestMax.max}`;
+  const renderCalendar = () => {
+    const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentDate);
+    const days = [];
+    
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(<div key={`empty-${i}`} className="aspect-square" />);
     }
-
-    if (dataTab === 'health') {
-      healthDetailCard.style.display = 'none';
-
-      const waterVals = (healthSeries.water || []).map(x => safeNum(x.value)).filter(n => n > 0);
-      const sleepVals = (healthSeries.sleep || []).map(x => safeNum(x.value)).filter(n => n > 0);
-
-      const avg = arr => arr.length ? (arr.reduce((s,n)=>s+n,0) / arr.length) : 0;
-      const avgWater = avg(waterVals);
-      const avgSleep = avg(sleepVals);
-
-      const daysCount = getAllDateKeys().length;
-      const waterDays = waterVals.length;
-      const sleepDays = sleepVals.length;
-
-      healthAverages.innerHTML = `
-        <div style="display:grid; gap:8px; margin-top:8px;">
-          <div><strong>Avg Water:</strong> ${avgWater ? avgWater.toFixed(1) : '—'} cups</div>
-          <div><strong>Avg Sleep:</strong> ${avgSleep ? avgSleep.toFixed(1) : '—'} hrs</div>
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const hasData = getCalendarDataForDate(date);
+      
+      days.push(
+        <div
+          key={day}
+          onClick={() => handleDateClick(day)}
+          className={`aspect-square flex flex-col items-center justify-center border cursor-pointer transition-colors
+            ${darkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}
+            ${hasData ? (darkMode ? 'bg-blue-900' : 'bg-blue-50') : ''}`}
+        >
+          <span className="text-sm">{day}</span>
+          {hasData && <div className="w-1 h-1 rounded-full bg-blue-500 mt-1" />}
         </div>
-      `;
-      healthAveragesSub.textContent = `Based on ${daysCount} saved day(s). Water entries: ${waterDays}. Sleep entries: ${sleepDays}.`;
+      );
+    }
+    
+    return days;
+  };
 
-      const METRICS = [
-        ['bodyweight','Body Weight'],
-        ['rbicep','Right Bicep Measurement'],
-        ['lbicep','Left Bicep Measurement'],
-        ['rcalf','Right Calf Measurement'],
-        ['lcalf','Left Calf Measurement'],
-        ['protein','Protein (g)'],
-        ['calories','Calories'],
-        ['water','Water (cups)'],
-        ['sleep','Sleep (hrs)'],
-        ['stool','Bowel Movement']
-      ];
+  const bgColor = darkMode ? 'bg-gray-900' : 'bg-white';
+  const textColor = darkMode ? 'text-white' : 'text-gray-900';
+  const borderColor = darkMode ? 'border-gray-700' : 'border-gray-200';
 
-      healthMetricList.innerHTML = '';
-      METRICS.forEach(([id,label]) => {
-        const series = healthSeries[id] || [];
-        const last = series.length ? series[series.length - 1] : null;
-        const row = document.createElement('div');
-        row.className = 'rowItem';
-        row.innerHTML = `
-          <div>
-            <div style="font-weight:900;">${label}</div>
-            <div style="color:var(--muted); font-size:.9rem; margin-top:2px;">Latest: ${last ? last.value : '—'} ${last ? `(${last.date})` : ''}</div>
+  return (
+    <div className={`min-h-screen ${bgColor} ${textColor} transition-colors`}>
+      {/* Header */}
+      <div className={`flex items-center justify-between p-4 border-b ${borderColor}`}>
+        {currentView !== 'calendar' && (
+          <button onClick={() => setCurrentView('calendar')} className="p-2">
+            <ArrowLeft size={24} />
+          </button>
+        )}
+        <h1 className="text-xl font-bold flex-1">
+          {currentView === 'calendar' && 'Fitness Tracker'}
+          {currentView === 'health' && 'Health Metrics'}
+          {currentView === 'exercise' && 'Exercise Stats'}
+          {currentView === 'data' && 'All Data'}
+        </h1>
+        <button onClick={() => setMenuOpen(!menuOpen)} className="p-2">
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Menu Dropdown */}
+      {menuOpen && (
+        <div className={`absolute right-0 top-16 ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${borderColor} rounded-lg shadow-lg z-50 w-48`}>
+          <button
+            onClick={() => { setCurrentView('health'); setMenuOpen(false); }}
+            className="w-full text-left px-4 py-3 hover:bg-opacity-80"
+          >
+            Health
+          </button>
+          <button
+            onClick={() => { setCurrentView('exercise'); setMenuOpen(false); }}
+            className="w-full text-left px-4 py-3 hover:bg-opacity-80"
+          >
+            Exercise
+          </button>
+          <button
+            onClick={() => { setCurrentView('data'); setMenuOpen(false); }}
+            className="w-full text-left px-4 py-3 hover:bg-opacity-80"
+          >
+            Data
+          </button>
+          <div className="border-t border-gray-300 my-1" />
+          <button
+            onClick={() => { setDarkMode(!darkMode); setMenuOpen(false); }}
+            className="w-full text-left px-4 py-3 hover:bg-opacity-80 flex items-center gap-2"
+          >
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
+      )}
+
+      {/* Calendar View */}
+      {currentView === 'calendar' && (
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}>
+              <ChevronLeft size={24} />
+            </button>
+            <h2 className="text-lg font-semibold">
+              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </h2>
+            <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}>
+              <ChevronRight size={24} />
+            </button>
           </div>
-          <div style="color:var(--muted); font-weight:900;">›</div>
-        `;
-        row.onclick = () => showHealthDetail(label, series);
-        healthMetricList.appendChild(row);
-      });
-    }
-  }
+          
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="text-center text-sm font-semibold py-2">{day}</div>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-7 gap-1">
+            {renderCalendar()}
+          </div>
+        </div>
+      )}
 
-  function showExerciseDetail(name, a) {
-    exerciseDetailCard.style.display = 'block';
-    exerciseDetailTitle.textContent = name;
-    exerciseDetailSummary.textContent = `${a.sets} total sets · ${a.reps} total reps · max weight ${a.maxWeight || 0}`;
+      {/* Health View */}
+      {currentView === 'health' && (
+        <div className="p-4 space-y-4">
+          <div className={`p-4 border ${borderColor} rounded-lg`}>
+            <h3 className="font-semibold mb-3">Current Averages</h3>
+            {(() => {
+              const avg = calculateHealthAverages();
+              return (
+                <div className="grid grid-cols-2 gap-3">
+                  <div><span className="font-medium">Weight:</span> {avg.weight} lbs</div>
+                  <div><span className="font-medium">Sleep:</span> {avg.sleep} hrs</div>
+                  <div><span className="font-medium">Water:</span> {avg.water} oz</div>
+                  <div><span className="font-medium">Calories:</span> {avg.calories}</div>
+                </div>
+              );
+            })()}
+          </div>
+          
+          <div className={`p-4 border ${borderColor} rounded-lg`}>
+            <h3 className="font-semibold mb-3">Most Recent Entry</h3>
+            {(() => {
+              const recent = getMostRecentMetrics();
+              if (!recent) return <p className="text-gray-500">No data yet</p>;
+              return (
+                <>
+                  <p className="text-sm mb-2">{new Date(recent.date).toLocaleDateString()}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><span className="font-medium">Weight:</span> {recent.metrics.weight} lbs</div>
+                    <div><span className="font-medium">Sleep:</span> {recent.metrics.sleep} hrs</div>
+                    <div><span className="font-medium">Water:</span> {recent.metrics.water} oz</div>
+                    <div><span className="font-medium">Calories:</span> {recent.metrics.calories}</div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
-    exerciseDetailTable.innerHTML = '';
-    const rows = a.history.slice().sort((x,y) => x.date.localeCompare(y.date) || (x.setIndex - y.setIndex));
-    if (!rows.length) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="4" style="color:var(--muted)">No saved entries yet.</td>`;
-      exerciseDetailTable.appendChild(tr);
-      return;
-    }
+      {/* Exercise View */}
+      {currentView === 'exercise' && (
+        <div className="p-4 space-y-4">
+          <div className={`p-4 border ${borderColor} rounded-lg`}>
+            <h3 className="font-semibold mb-3">Next Planned Workout</h3>
+            {(() => {
+              const next = getNextPlannedWorkout();
+              if (!next) return <p className="text-gray-500">No upcoming workouts</p>;
+              return (
+                <>
+                  <p className="text-sm mb-2">{new Date(next.date).toLocaleDateString()}</p>
+                  {next.workouts.map((w, i) => (
+                    <div key={i} className="mb-2">
+                      {w.exercise}: {w.sets} sets × {w.reps} reps
+                    </div>
+                  ))}
+                </>
+              );
+            })()}
+          </div>
+          
+          <div className={`p-4 border ${borderColor} rounded-lg`}>
+            <h3 className="font-semibold mb-3">Top Performance</h3>
+            {getTopExerciseMetrics().map((ex, i) => (
+              <div key={i} className="mb-2">
+                <span className="font-medium">{ex.name}:</span> {ex.sets} sets × {ex.reps} reps
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-    rows.forEach(r => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.date}</td><td>${r.setIndex}</td><td>${r.reps}</td><td>${r.weight}</td>`;
-      exerciseDetailTable.appendChild(tr);
-    });
+      {/* Data View */}
+      {currentView === 'data' && (
+        <div className="p-4 space-y-4">
+          {Object.entries(calendarData)
+            .filter(([_, d]) => d.saved)
+            .sort(([_, a], [__, b]) => new Date(b.date) - new Date(a.date))
+            .map(([key, day]) => (
+              <div key={key} className={`p-4 border ${borderColor} rounded-lg`}>
+                <h3 className="font-semibold mb-2">{new Date(day.date).toLocaleDateString()}</h3>
+                
+                {day.workouts && day.workouts.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-sm font-medium mb-1">Workouts:</p>
+                    {day.workouts.map((w, i) => (
+                      <div key={i} className="text-sm ml-2">• {w.exercise}: {w.sets}×{w.reps}</div>
+                    ))}
+                  </div>
+                )}
+                
+                {day.metrics && (
+                  <div className="text-sm grid grid-cols-2 gap-2">
+                    {day.metrics.weight && <div>Weight: {day.metrics.weight} lbs</div>}
+                    {day.metrics.sleep && <div>Sleep: {day.metrics.sleep} hrs</div>}
+                    {day.metrics.water && <div>Water: {day.metrics.water} oz</div>}
+                    {day.metrics.calories && <div>Calories: {day.metrics.calories}</div>}
+                  </div>
+                )}
+              </div>
+            ))}
+        </div>
+      )}
 
-    exerciseDetailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+      {/* Day Modal */}
+      {showDayModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`${bgColor} rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto p-6`}>
+            <h2 className="text-xl font-bold mb-4">
+              {selectedDate?.toLocaleDateString()}
+            </h2>
+            
+            {/* Workouts */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold">Workouts</h3>
+                <button onClick={addWorkout} className="text-blue-500">
+                  <Plus size={20} />
+                </button>
+              </div>
+              {workoutPlan.map((workout, i) => (
+                <div key={i} className={`flex gap-2 mb-2 p-2 border ${borderColor} rounded`}>
+                  <input
+                    placeholder="Exercise"
+                    value={workout.exercise}
+                    onChange={(e) => updateWorkout(i, 'exercise', e.target.value)}
+                    className={`flex-1 px-2 py-1 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                  />
+                  <input
+                    placeholder="Sets"
+                    type="number"
+                    value={workout.sets}
+                    onChange={(e) => updateWorkout(i, 'sets', e.target.value)}
+                    className={`w-16 px-2 py-1 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                  />
+                  <input
+                    placeholder="Reps"
+                    type="number"
+                    value={workout.reps}
+                    onChange={(e) => updateWorkout(i, 'reps', e.target.value)}
+                    className={`w-16 px-2 py-1 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                  />
+                  <button onClick={() => removeWorkout(i)} className="text-red-500">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
 
-  function showHealthDetail(label, series) {
-    healthDetailCard.style.display = 'block';
-    healthDetailTitle.textContent = label;
-    healthDetailTable.innerHTML = '';
+            {/* Food */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold">Food & Calories</h3>
+                <button onClick={addFood} className="text-blue-500">
+                  <Plus size={20} />
+                </button>
+              </div>
+              {foodEntries.map((food, i) => (
+                <div key={i} className={`flex gap-2 mb-2 p-2 border ${borderColor} rounded`}>
+                  <input
+                    placeholder="Food item"
+                    value={food.name}
+                    onChange={(e) => updateFood(i, 'name', e.target.value)}
+                    className={`flex-1 px-2 py-1 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                  />
+                  <input
+                    placeholder="Cal"
+                    type="number"
+                    value={food.calories}
+                    onChange={(e) => updateFood(i, 'calories', e.target.value)}
+                    className={`w-20 px-2 py-1 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                  />
+                  <button onClick={() => removeFood(i)} className="text-red-500">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
 
-    const rows = series.slice().sort((a,b) => a.date.localeCompare(b.date));
-    if (!rows.length) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="2" style="color:var(--muted)">No saved entries yet.</td>`;
-      healthDetailTable.appendChild(tr);
-      return;
-    }
+            {/* Daily Metrics */}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">Daily Metrics</h3>
+              <div className="space-y-2">
+                <input
+                  placeholder="Weight (lbs)"
+                  type="number"
+                  value={dailyMetrics.weight}
+                  onChange={(e) => setDailyMetrics({...dailyMetrics, weight: e.target.value})}
+                  className={`w-full px-3 py-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                />
+                <input
+                  placeholder="Sleep (hours)"
+                  type="number"
+                  value={dailyMetrics.sleep}
+                  onChange={(e) => setDailyMetrics({...dailyMetrics, sleep: e.target.value})}
+                  className={`w-full px-3 py-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                />
+                <input
+                  placeholder="Water (oz)"
+                  type="number"
+                  value={dailyMetrics.water}
+                  onChange={(e) => setDailyMetrics({...dailyMetrics, water: e.target.value})}
+                  className={`w-full px-3 py-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                />
+                <input
+                  placeholder="Total Calories"
+                  type="number"
+                  value={dailyMetrics.calories}
+                  onChange={(e) => setDailyMetrics({...dailyMetrics, calories: e.target.value})}
+                  className={`w-full px-3 py-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                />
+              </div>
+            </div>
 
-    rows.forEach(r => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.date}</td><td>${r.value}</td>`;
-      healthDetailTable.appendChild(tr);
-    });
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDayModal(false)}
+                className={`flex-1 py-2 rounded border ${borderColor}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveDayData}
+                className="flex-1 py-2 rounded bg-blue-500 text-white"
+              >
+                Save Day
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
-    healthDetailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  // --------------------
-  // Mobile back button (header ←)
-  // --------------------
-  function mobileBackToCalendar() {
-    // If editor is open, go back to calendar grid
-    if (editorView.style.display === 'block') {
-      closeEditor();
-      return;
-    }
-
-    // If in data mode, switch back to calendar
-    if (mode === 'data') {
-      setMode('calendar');
-      return;
-    }
-
-    // Default fallback
-    setMode('calendar');
-  }
-
-  // --------------------
-  // Init
-  // --------------------
-  function init() {
-    const savedTheme = localStorage.getItem('ig_theme');
-    applyTheme(savedTheme === 'light' ? 'light' : 'dark');
-
-    selectedDate = new Date();
-    weekdaysHeader();
-    renderCalendar();
-
-    // Saved lists start hidden (as requested)
-    document.getElementById('filesDesktop').style.display = 'none';
-    document.getElementById('filesMobile').style.display = 'none';
-  }
-
-  init();
-</script>
-
-</body>
-</html>
+export default FitnessApp;
