@@ -19,9 +19,20 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <style>
-      /* Small nicety: prevent iOS tap highlight and make inputs feel native */
       * { -webkit-tap-highlight-color: transparent; }
-      input { outline: none; }
+      input, select { outline: none; }
+      /* a tiny bit of fun texture without images */
+      .sparkle-bg {
+        background-image:
+          radial-gradient(circle at 10% 10%, rgba(59,130,246,.18) 0 2px, transparent 3px),
+          radial-gradient(circle at 80% 30%, rgba(168,85,247,.16) 0 2px, transparent 3px),
+          radial-gradient(circle at 30% 80%, rgba(34,197,94,.14) 0 2px, transparent 3px),
+          radial-gradient(circle at 90% 85%, rgba(236,72,153,.12) 0 2px, transparent 3px);
+      }
+      .glass {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
     </style>
   </head>
 
@@ -29,7 +40,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-      const { useState, useEffect } = React;
+      const { useState, useEffect, useMemo } = React;
 
       // Tiny Lucide React-style wrapper using lucide's browser bundle
       const Icon = ({ name, size = 24, className = "" }) => (
@@ -59,7 +70,7 @@
           calories: "",
         });
 
-        // Persist data (optional but super useful on GitHub Pages)
+        // Persist data
         useEffect(() => {
           try {
             const saved = localStorage.getItem("fitness_calendarData");
@@ -145,6 +156,7 @@
 
         const saveDayData = () => {
           const key = formatDateKey(selectedDate);
+
           const newData = {
             ...calendarData,
             [key]: {
@@ -155,13 +167,15 @@
               date: selectedDate.toISOString(),
             },
           };
+
           setCalendarData(newData);
           setShowDayModal(false);
           alert("Day saved successfully!");
         };
 
+        // ---- Workouts (NOW includes weight) ----
         const addWorkout = () => {
-          setWorkoutPlan([...workoutPlan, { exercise: "", sets: "", reps: "" }]);
+          setWorkoutPlan([...workoutPlan, { exercise: "", sets: "", reps: "", weight: "" }]);
         };
 
         const updateWorkout = (index, field, value) => {
@@ -174,6 +188,7 @@
           setWorkoutPlan(workoutPlan.filter((_, i) => i !== index));
         };
 
+        // ---- Food ----
         const addFood = () => {
           setFoodEntries([...foodEntries, { name: "", calories: "" }]);
         };
@@ -188,38 +203,112 @@
           setFoodEntries(foodEntries.filter((_, i) => i !== index));
         };
 
+        // ---- Metrics helpers ----
+        const getSavedDays = () =>
+          Object.values(calendarData)
+            .filter((d) => d && d.saved && d.metrics && d.date)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Accurate averages: only divide by days where that metric exists
         const calculateHealthAverages = () => {
-          const savedDays = Object.values(calendarData).filter((d) => d.saved && d.metrics);
-          const count = savedDays.length;
+          const savedDays = getSavedDays();
+          if (savedDays.length === 0) return { weight: "0", sleep: "0", water: "0", calories: "0" };
 
-          if (count === 0) return { weight: 0, sleep: 0, water: 0, calories: 0 };
+          const metricFields = ["weight", "sleep", "water", "calories"];
+          const totals = { weight: 0, sleep: 0, water: 0, calories: 0 };
+          const counts = { weight: 0, sleep: 0, water: 0, calories: 0 };
 
-          const totals = savedDays.reduce(
-            (acc, day) => ({
-              weight: acc.weight + (parseFloat(day.metrics.weight) || 0),
-              sleep: acc.sleep + (parseFloat(day.metrics.sleep) || 0),
-              water: acc.water + (parseFloat(day.metrics.water) || 0),
-              calories: acc.calories + (parseFloat(day.metrics.calories) || 0),
-            }),
-            { weight: 0, sleep: 0, water: 0, calories: 0 }
-          );
+          savedDays.forEach((day) => {
+            metricFields.forEach((f) => {
+              const v = parseFloat(day.metrics?.[f]);
+              if (!Number.isNaN(v) && day.metrics?.[f] !== "" && v !== 0) {
+                totals[f] += v;
+                counts[f] += 1;
+              }
+            });
+          });
+
+          const avg = (field, decimals) => {
+            if (!counts[field]) return "0";
+            const val = totals[field] / counts[field];
+            return val.toFixed(decimals);
+          };
 
           return {
-            weight: (totals.weight / count).toFixed(1),
-            sleep: (totals.sleep / count).toFixed(1),
-            water: (totals.water / count).toFixed(0),
-            calories: (totals.calories / count).toFixed(0),
+            weight: avg("weight", 1),
+            sleep: avg("sleep", 1),
+            water: avg("water", 0),
+            calories: avg("calories", 0),
           };
         };
 
         const getMostRecentMetrics = () => {
-          const savedDays = Object.entries(calendarData)
-            .filter(([_, d]) => d.saved && d.metrics)
-            .sort(([_, a], [__, b]) => new Date(b.date) - new Date(a.date));
-
-          return savedDays.length > 0 ? savedDays[0][1] : null;
+          const savedDays = getSavedDays().sort((a, b) => new Date(b.date) - new Date(a.date));
+          return savedDays.length > 0 ? savedDays[0] : null;
         };
 
+        const getCurrentWeightFromLastEntry = () => {
+          const savedDays = getSavedDays().sort((a, b) => new Date(b.date) - new Date(a.date));
+          const dayWithWeight = savedDays.find((d) => d.metrics && d.metrics.weight !== "" && !Number.isNaN(parseFloat(d.metrics.weight)));
+          return dayWithWeight ? parseFloat(dayWithWeight.metrics.weight) : null;
+        };
+
+        // ---- Lifetime Exercise Stats (total reps, total sets, max 1RM weight) ----
+        const getLifetimeExerciseStats = () => {
+          const stats = {}; // key -> { name, totalSets, totalReps, max1RM, maxAny }
+
+          Object.values(calendarData).forEach((day) => {
+            if (!day?.saved || !day?.workouts) return;
+
+            day.workouts.forEach((w) => {
+              const nameRaw = (w.exercise || "").trim();
+              const key = nameRaw.toLowerCase();
+              if (!key) return;
+
+              const sets = parseInt(w.sets, 10) || 0;
+              const reps = parseInt(w.reps, 10) || 0;
+              const weight = parseFloat(w.weight);
+              const weightNum = Number.isNaN(weight) ? null : weight;
+
+              if (!stats[key]) {
+                stats[key] = {
+                  name: nameRaw,
+                  totalSets: 0,
+                  totalReps: 0,
+                  max1RM: null,
+                  maxAny: null,
+                };
+              }
+
+              stats[key].totalSets += sets;
+              stats[key].totalReps += sets * reps;
+
+              // Track max weight used for any entry (fallback)
+              if (weightNum !== null) {
+                stats[key].maxAny = stats[key].maxAny === null ? weightNum : Math.max(stats[key].maxAny, weightNum);
+
+                // "max weight will only be my one rep max lift" -> only count reps==1 entries for max1RM
+                if (reps === 1) {
+                  stats[key].max1RM = stats[key].max1RM === null ? weightNum : Math.max(stats[key].max1RM, weightNum);
+                }
+              }
+            });
+          });
+
+          // Convert to array and sort by name
+          const arr = Object.values(stats).map((s) => ({
+            name: s.name,
+            totalSets: s.totalSets,
+            totalReps: s.totalReps,
+            maxWeight: (s.max1RM !== null ? s.max1RM : (s.maxAny ?? 0)),
+            is1RMOnly: s.max1RM !== null,
+          }));
+
+          arr.sort((a, b) => a.name.localeCompare(b.name));
+          return arr;
+        };
+
+        // Existing "Top Performance" section: now considers weight as well (optional)
         const getTopExerciseMetrics = () => {
           const exercises = {};
           Object.values(calendarData).forEach((day) => {
@@ -228,12 +317,17 @@
                 const key = (w.exercise || "").toLowerCase().trim();
                 if (!key) return;
                 const total = (parseInt(w.sets) || 0) * (parseInt(w.reps) || 0);
+                const wt = parseFloat(w.weight);
+                const weightNum = Number.isNaN(wt) ? null : wt;
+
                 if (!exercises[key] || total > exercises[key].total) {
                   exercises[key] = {
                     name: w.exercise,
                     sets: w.sets,
                     reps: w.reps,
+                    weight: w.weight,
                     total,
+                    weightNum,
                   };
                 }
               });
@@ -245,7 +339,7 @@
         const getNextPlannedWorkout = () => {
           const today = new Date();
           const futureDays = Object.entries(calendarData)
-            .filter(([_, d]) => new Date(d.date) >= today && d.workouts && d.workouts.length > 0)
+            .filter(([_, d]) => d?.date && new Date(d.date) >= today && d.workouts && d.workouts.length > 0)
             .sort(([_, a], [__, b]) => new Date(a.date) - new Date(b.date));
 
           return futureDays.length > 0 ? futureDays[0][1] : null;
@@ -262,17 +356,30 @@
           for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
             const hasData = getCalendarDataForDate(date);
+            const hasWorkout = !!hasData?.workouts?.length;
+            const hasMetrics = !!(hasData?.metrics && (hasData.metrics.weight || hasData.metrics.sleep || hasData.metrics.water || hasData.metrics.calories));
 
             days.push(
               <div
                 key={day}
                 onClick={() => handleDateClick(day)}
-                className={`aspect-square flex flex-col items-center justify-center border cursor-pointer transition-colors
-                  ${darkMode ? "border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-100"}
-                  ${hasData ? (darkMode ? "bg-blue-900" : "bg-blue-50") : ""}`}
+                className={[
+                  "aspect-square flex flex-col items-center justify-center border cursor-pointer transition",
+                  "rounded-2xl",
+                  darkMode ? "border-white/10 hover:bg-white/5" : "border-black/10 hover:bg-black/5",
+                  hasData ? (darkMode ? "bg-white/5" : "bg-black/5") : "",
+                ].join(" ")}
               >
-                <span className="text-sm">{day}</span>
-                {hasData && <div className="w-1 h-1 rounded-full bg-blue-500 mt-1" />}
+                <span className={["text-sm", darkMode ? "text-white" : "text-gray-900"].join(" ")}>
+                  {day}
+                </span>
+
+                {/* Tiny status pills */}
+                <div className="flex gap-1 mt-1">
+                  {hasWorkout && <div className="w-2 h-2 rounded-full bg-fuchsia-400" title="Workout" />}
+                  {hasMetrics && <div className="w-2 h-2 rounded-full bg-sky-400" title="Metrics" />}
+                  {hasData && !hasWorkout && !hasMetrics && <div className="w-2 h-2 rounded-full bg-emerald-400" title="Saved" />}
+                </div>
               </div>
             );
           }
@@ -280,160 +387,233 @@
           return days;
         };
 
-        const bgColor = darkMode ? "bg-gray-900" : "bg-white";
-        const textColor = darkMode ? "text-white" : "text-gray-900";
-        const borderColor = darkMode ? "border-gray-700" : "border-gray-200";
+        // ---- Theme tokens (more modern/fun) ----
+        const bgColor = darkMode ? "bg-slate-950" : "bg-slate-50";
+        const textColor = darkMode ? "text-slate-100" : "text-slate-900";
+        const borderColor = darkMode ? "border-white/10" : "border-black/10";
+        const cardBg = darkMode ? "bg-white/5" : "bg-white";
+        const cardBorder = darkMode ? "border-white/10" : "border-black/10";
+
+        const headerGradient = darkMode
+          ? "bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950"
+          : "bg-gradient-to-r from-white via-slate-50 to-white";
+
+        const accentGradient = "bg-gradient-to-r from-sky-500 via-fuchsia-500 to-emerald-500";
+
+        // Memoize some computed stats for performance/consistency
+        const lifetimeStats = useMemo(() => getLifetimeExerciseStats(), [calendarData]);
+        const currentWeight = useMemo(() => getCurrentWeightFromLastEntry(), [calendarData]);
 
         return (
-          <div className={`min-h-screen ${bgColor} ${textColor} transition-colors`}>
+          <div className={`min-h-screen ${bgColor} ${textColor} transition-colors sparkle-bg`}>
             {/* Header */}
-            <div className={`flex items-center justify-between p-4 border-b ${borderColor}`}>
-              {currentView !== "calendar" && (
-                <button onClick={() => setCurrentView("calendar")} className="p-2">
-                  <Icon name="arrow-left" size={24} />
+            <div className={`sticky top-0 z-40 ${headerGradient} glass border-b ${borderColor}`}>
+              <div className="flex items-center justify-between p-4">
+                {currentView !== "calendar" && (
+                  <button
+                    onClick={() => setCurrentView("calendar")}
+                    className={`p-2 rounded-xl ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                    aria-label="Back"
+                  >
+                    <Icon name="arrow-left" size={22} />
+                  </button>
+                )}
+
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold tracking-tight">
+                    {currentView === "calendar" && "Iron Gate"}
+                    {currentView === "health" && "Health Metrics"}
+                    {currentView === "exercise" && "Exercise Stats"}
+                    {currentView === "data" && "All Data"}
+                  </h1>
+                  <div className="text-xs opacity-70">
+                    {darkMode ? "Night mode: stealth gains 🌙" : "Day mode: vitamin D PRs ☀️"}
+                  </div>
+                </div>
+
+                <button
+                  id="menuButton"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className={`p-2 rounded-xl ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                  aria-label="Menu"
+                >
+                  {menuOpen ? <Icon name="x" size={22} /> : <Icon name="menu" size={22} />}
                 </button>
-              )}
-              <h1 className="text-xl font-bold flex-1">
-                {currentView === "calendar" && "Iron Gate"}
-                {currentView === "health" && "Health Metrics"}
-                {currentView === "exercise" && "Exercise Stats"}
-                {currentView === "data" && "All Data"}
-              </h1>
-              <button id="menuButton" onClick={() => setMenuOpen(!menuOpen)} className="p-2">
-                {menuOpen ? <Icon name="x" size={24} /> : <Icon name="menu" size={24} />}
-              </button>
+              </div>
+
+              {/* subtle accent bar */}
+              <div className={`h-1 w-full ${accentGradient} opacity-70`} />
             </div>
 
             {/* Menu Dropdown */}
             {menuOpen && (
               <div
                 id="menuDropdown"
-                className={`absolute right-0 top-16 ${darkMode ? "bg-gray-800" : "bg-white"} border ${borderColor} rounded-lg shadow-lg z-50 w-48`}
+                className={[
+                  "fixed right-4 top-16",
+                  "w-56 rounded-2xl shadow-xl border",
+                  "overflow-hidden",
+                  "glass",
+                  darkMode ? "bg-slate-900/70 border-white/10" : "bg-white/70 border-black/10",
+                  "z-50"
+                ].join(" ")}
               >
-                <button
-                  onClick={() => {
-                    setCurrentView("health");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-opacity-80"
-                >
-                  Health
-                </button>
-                <button
-                  onClick={() => {
-                    setCurrentView("exercise");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-opacity-80"
-                >
-                  Exercise
-                </button>
-                <button
-                  onClick={() => {
-                    setCurrentView("data");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-opacity-80"
-                >
-                  Data
-                </button>
-                <div className="border-t border-gray-300 my-1" />
+                {[
+                  { key: "health", label: "Health", icon: "activity" },
+                  { key: "exercise", label: "Exercise", icon: "dumbbell" },
+                  { key: "data", label: "Data", icon: "database" },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => {
+                      setCurrentView(item.key);
+                      setMenuOpen(false);
+                    }}
+                    className={[
+                      "w-full text-left px-4 py-3 flex items-center gap-3",
+                      darkMode ? "hover:bg-white/10" : "hover:bg-black/5"
+                    ].join(" ")}
+                  >
+                    <span className={`p-2 rounded-xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                      <Icon name={item.icon} size={18} />
+                    </span>
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                ))}
+
+                <div className={`h-px ${darkMode ? "bg-white/10" : "bg-black/10"}`} />
+
                 <button
                   onClick={() => {
                     setDarkMode(!darkMode);
                     setMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-3 hover:bg-opacity-80 flex items-center gap-2"
+                  className={[
+                    "w-full text-left px-4 py-3 flex items-center gap-3",
+                    darkMode ? "hover:bg-white/10" : "hover:bg-black/5"
+                  ].join(" ")}
                 >
-                  {darkMode ? <Icon name="sun" size={18} /> : <Icon name="moon" size={18} />}
-                  {darkMode ? "Light Mode" : "Dark Mode"}
+                  <span className={`p-2 rounded-xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                    {darkMode ? <Icon name="sun" size={18} /> : <Icon name="moon" size={18} />}
+                  </span>
+                  <span className="font-medium">{darkMode ? "Light Mode" : "Dark Mode"}</span>
                 </button>
               </div>
             )}
 
             {/* Calendar View */}
             {currentView === "calendar" && (
-              <div className="p-4">
+              <div className="p-4 max-w-3xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <button
                     onClick={() =>
                       setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
                     }
-                    className="p-1"
+                    className={`p-2 rounded-xl ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                    aria-label="Previous month"
                   >
-                    <Icon name="chevron-left" size={24} />
+                    <Icon name="chevron-left" size={22} />
                   </button>
-                  <h2 className="text-lg font-semibold">
-                    {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                  </h2>
+
+                  <div className="text-center">
+                    <h2 className="text-lg font-semibold">
+                      {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                    </h2>
+                    <div className="text-xs opacity-70">
+                      Tap a day to plan workouts + log metrics ✍️
+                    </div>
+                  </div>
+
                   <button
                     onClick={() =>
                       setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
                     }
-                    className="p-1"
+                    className={`p-2 rounded-xl ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                    aria-label="Next month"
                   >
-                    <Icon name="chevron-right" size={24} />
+                    <Icon name="chevron-right" size={22} />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                    <div key={day} className="text-center text-sm font-semibold py-2">
-                      {day}
-                    </div>
-                  ))}
+                <div className={`${cardBg} border ${cardBorder} rounded-3xl p-4 shadow-sm`}>
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                      <div key={day} className="text-center text-xs font-semibold py-2 opacity-70">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-2">{renderCalendar()}</div>
                 </div>
-
-                <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
               </div>
             )}
 
             {/* Health View */}
             {currentView === "health" && (
-              <div className="p-4 space-y-4">
-                <div className={`p-4 border ${borderColor} rounded-lg`}>
-                  <h3 className="font-semibold mb-3">Current Averages</h3>
+              <div className="p-4 max-w-3xl mx-auto space-y-4">
+                <div className={`${cardBg} border ${cardBorder} rounded-3xl p-5 shadow-sm`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`p-2 rounded-2xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                      <Icon name="bar-chart-3" size={18} />
+                    </span>
+                    <h3 className="font-semibold">Current Averages (only days you actually logged)</h3>
+                  </div>
+
                   {(() => {
                     const avg = calculateHealthAverages();
                     return (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <span className="font-medium">Weight:</span> {avg.weight} lbs
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                          <div className="opacity-70 text-xs mb-1">Weight</div>
+                          <div className="font-semibold">{avg.weight} lbs</div>
                         </div>
-                        <div>
-                          <span className="font-medium">Sleep:</span> {avg.sleep} hrs
+                        <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                          <div className="opacity-70 text-xs mb-1">Sleep</div>
+                          <div className="font-semibold">{avg.sleep} hrs</div>
                         </div>
-                        <div>
-                          <span className="font-medium">Water:</span> {avg.water} oz
+                        <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                          <div className="opacity-70 text-xs mb-1">Water</div>
+                          <div className="font-semibold">{avg.water} oz</div>
                         </div>
-                        <div>
-                          <span className="font-medium">Calories:</span> {avg.calories}
+                        <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                          <div className="opacity-70 text-xs mb-1">Calories</div>
+                          <div className="font-semibold">{avg.calories}</div>
                         </div>
                       </div>
                     );
                   })()}
                 </div>
 
-                <div className={`p-4 border ${borderColor} rounded-lg`}>
-                  <h3 className="font-semibold mb-3">Most Recent Entry</h3>
+                <div className={`${cardBg} border ${cardBorder} rounded-3xl p-5 shadow-sm`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`p-2 rounded-2xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                      <Icon name="clock-3" size={18} />
+                    </span>
+                    <h3 className="font-semibold">Most Recent Entry</h3>
+                  </div>
+
                   {(() => {
                     const recent = getMostRecentMetrics();
-                    if (!recent) return <p className="text-gray-500">No data yet</p>;
+                    if (!recent) return <p className="opacity-70 text-sm">No data yet</p>;
                     return (
                       <>
-                        <p className="text-sm mb-2">{new Date(recent.date).toLocaleDateString()}</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <span className="font-medium">Weight:</span> {recent.metrics.weight} lbs
+                        <p className="text-xs opacity-70 mb-2">{new Date(recent.date).toLocaleDateString()}</p>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                            <div className="opacity-70 text-xs mb-1">Weight</div>
+                            <div className="font-semibold">{recent.metrics.weight || "—"} lbs</div>
                           </div>
-                          <div>
-                            <span className="font-medium">Sleep:</span> {recent.metrics.sleep} hrs
+                          <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                            <div className="opacity-70 text-xs mb-1">Sleep</div>
+                            <div className="font-semibold">{recent.metrics.sleep || "—"} hrs</div>
                           </div>
-                          <div>
-                            <span className="font-medium">Water:</span> {recent.metrics.water} oz
+                          <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                            <div className="opacity-70 text-xs mb-1">Water</div>
+                            <div className="font-semibold">{recent.metrics.water || "—"} oz</div>
                           </div>
-                          <div>
-                            <span className="font-medium">Calories:</span> {recent.metrics.calories}
+                          <div className={`rounded-2xl p-3 border ${cardBorder}`}>
+                            <div className="opacity-70 text-xs mb-1">Calories</div>
+                            <div className="font-semibold">{recent.metrics.calories || "—"}</div>
                           </div>
                         </div>
                       </>
@@ -445,18 +625,28 @@
 
             {/* Exercise View */}
             {currentView === "exercise" && (
-              <div className="p-4 space-y-4">
-                <div className={`p-4 border ${borderColor} rounded-lg`}>
-                  <h3 className="font-semibold mb-3">Next Planned Workout</h3>
+              <div className="p-4 max-w-3xl mx-auto space-y-4">
+                <div className={`${cardBg} border ${cardBorder} rounded-3xl p-5 shadow-sm`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`p-2 rounded-2xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                      <Icon name="calendar-check-2" size={18} />
+                    </span>
+                    <h3 className="font-semibold">Next Planned Workout</h3>
+                  </div>
+
                   {(() => {
                     const next = getNextPlannedWorkout();
-                    if (!next) return <p className="text-gray-500">No upcoming workouts</p>;
+                    if (!next) return <p className="opacity-70 text-sm">No upcoming workouts</p>;
                     return (
                       <>
-                        <p className="text-sm mb-2">{new Date(next.date).toLocaleDateString()}</p>
+                        <p className="text-xs opacity-70 mb-2">{new Date(next.date).toLocaleDateString()}</p>
                         {next.workouts.map((w, i) => (
-                          <div key={i} className="mb-2">
-                            {w.exercise}: {w.sets} sets × {w.reps} reps
+                          <div key={i} className={`mb-2 rounded-2xl p-3 border ${cardBorder} text-sm`}>
+                            <div className="font-semibold">{w.exercise || "—"}</div>
+                            <div className="opacity-80">
+                              {w.sets || "0"} sets × {w.reps || "0"} reps
+                              {w.weight ? ` @ ${w.weight} lb` : ""}
+                            </div>
                           </div>
                         ))}
                       </>
@@ -464,14 +654,23 @@
                   })()}
                 </div>
 
-                <div className={`p-4 border ${borderColor} rounded-lg`}>
-                  <h3 className="font-semibold mb-3">Top Performance</h3>
+                <div className={`${cardBg} border ${cardBorder} rounded-3xl p-5 shadow-sm`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`p-2 rounded-2xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                      <Icon name="trophy" size={18} />
+                    </span>
+                    <h3 className="font-semibold">Top Performance</h3>
+                  </div>
+
                   {getTopExerciseMetrics().length === 0 ? (
-                    <p className="text-gray-500">No exercise data yet</p>
+                    <p className="opacity-70 text-sm">No exercise data yet</p>
                   ) : (
                     getTopExerciseMetrics().map((ex, i) => (
-                      <div key={i} className="mb-2">
-                        <span className="font-medium">{ex.name}:</span> {ex.sets} sets × {ex.reps} reps
+                      <div key={i} className={`mb-2 rounded-2xl p-3 border ${cardBorder} text-sm`}>
+                        <div className="font-semibold">{ex.name}</div>
+                        <div className="opacity-80">
+                          {ex.sets} sets × {ex.reps} reps{ex.weight ? ` @ ${ex.weight} lb` : ""}
+                        </div>
                       </div>
                     ))
                   )}
@@ -481,87 +680,219 @@
 
             {/* Data View */}
             {currentView === "data" && (
-              <div className="p-4 space-y-4">
-                {Object.entries(calendarData)
-                  .filter(([_, d]) => d.saved)
-                  .sort(([_, a], [__, b]) => new Date(b.date) - new Date(a.date))
-                  .map(([key, day]) => (
-                    <div key={key} className={`p-4 border ${borderColor} rounded-lg`}>
-                      <h3 className="font-semibold mb-2">
-                        {new Date(day.date).toLocaleDateString()}
-                      </h3>
-
-                      {day.workouts && day.workouts.length > 0 && (
-                        <div className="mb-3">
-                          <p className="text-sm font-medium mb-1">Workouts:</p>
-                          {day.workouts.map((w, i) => (
-                            <div key={i} className="text-sm ml-2">
-                              • {w.exercise}: {w.sets}×{w.reps}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {day.metrics && (
-                        <div className="text-sm grid grid-cols-2 gap-2">
-                          {day.metrics.weight && <div>Weight: {day.metrics.weight} lbs</div>}
-                          {day.metrics.sleep && <div>Sleep: {day.metrics.sleep} hrs</div>}
-                          {day.metrics.water && <div>Water: {day.metrics.water} oz</div>}
-                          {day.metrics.calories && <div>Calories: {day.metrics.calories}</div>}
-                        </div>
-                      )}
+              <div className="p-4 max-w-4xl mx-auto space-y-4">
+                {/* Quick Stats */}
+                <div className={`${cardBg} border ${cardBorder} rounded-3xl p-5 shadow-sm`}>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className={`p-2 rounded-2xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                        <Icon name="gauge" size={18} />
+                      </span>
+                      <div>
+                        <div className="font-semibold">Snapshots</div>
+                        <div className="text-xs opacity-70">Pulled from your saved entries</div>
+                      </div>
                     </div>
-                  ))}
 
-                {Object.values(calendarData).filter((d) => d.saved).length === 0 && (
-                  <p className="text-gray-500">No saved days yet. Tap a day on the calendar and save it.</p>
-                )}
+                    <div className="flex gap-2 flex-wrap">
+                      <div className={`px-3 py-2 rounded-2xl border ${cardBorder} text-sm`}>
+                        <span className="opacity-70">Current weight:</span>{" "}
+                        <span className="font-semibold">{currentWeight !== null ? `${currentWeight} lbs` : "—"}</span>
+                      </div>
+                      {(() => {
+                        const avg = calculateHealthAverages();
+                        return (
+                          <>
+                            <div className={`px-3 py-2 rounded-2xl border ${cardBorder} text-sm`}>
+                              <span className="opacity-70">Avg sleep:</span>{" "}
+                              <span className="font-semibold">{avg.sleep} hrs</span>
+                            </div>
+                            <div className={`px-3 py-2 rounded-2xl border ${cardBorder} text-sm`}>
+                              <span className="opacity-70">Avg water:</span>{" "}
+                              <span className="font-semibold">{avg.water} oz</span>
+                            </div>
+                            <div className={`px-3 py-2 rounded-2xl border ${cardBorder} text-sm`}>
+                              <span className="opacity-70">Avg calories:</span>{" "}
+                              <span className="font-semibold">{avg.calories}</span>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lifetime exercise summary */}
+                <div className={`${cardBg} border ${cardBorder} rounded-3xl p-5 shadow-sm`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`p-2 rounded-2xl ${darkMode ? "bg-white/10" : "bg-black/5"}`}>
+                      <Icon name="list-checks" size={18} />
+                    </span>
+                    <h3 className="font-semibold">Lifetime Exercise Summary</h3>
+                  </div>
+
+                  {lifetimeStats.length === 0 ? (
+                    <p className="opacity-70 text-sm">No lifetime exercise data yet. Log workouts on the calendar to build this.</p>
+                  ) : (
+                    <div className={`overflow-x-auto rounded-2xl border ${cardBorder}`}>
+                      <table className="min-w-full text-sm">
+                        <thead className={darkMode ? "bg-white/5" : "bg-black/5"}>
+                          <tr>
+                            <th className="text-left px-4 py-3 font-semibold">Exercise</th>
+                            <th className="text-left px-4 py-3 font-semibold">Total reps</th>
+                            <th className="text-left px-4 py-3 font-semibold">Total sets</th>
+                            <th className="text-left px-4 py-3 font-semibold">Max weight (1RM)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lifetimeStats.map((s, idx) => (
+                            <tr key={idx} className={darkMode ? "border-t border-white/10" : "border-t border-black/10"}>
+                              <td className="px-4 py-3 font-medium">{s.name}</td>
+                              <td className="px-4 py-3">{s.totalReps}</td>
+                              <td className="px-4 py-3">{s.totalSets}</td>
+                              <td className="px-4 py-3">
+                                {s.maxWeight ? `${s.maxWeight} lb` : "—"}
+                                <span className="text-xs opacity-60 ml-2">
+                                  {s.is1RMOnly ? "(from reps=1)" : "(fallback max)"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Day-by-day list */}
+                <div className="space-y-3">
+                  {Object.entries(calendarData)
+                    .filter(([_, d]) => d.saved)
+                    .sort(([_, a], [__, b]) => new Date(b.date) - new Date(a.date))
+                    .map(([key, day]) => (
+                      <div key={key} className={`${cardBg} border ${cardBorder} rounded-3xl p-5 shadow-sm`}>
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold">
+                            {new Date(day.date).toLocaleDateString()}
+                          </h3>
+                          <div className="text-xs opacity-70">
+                            {(day.workouts?.length ? "🏋️" : "")} {(day.metrics ? "📈" : "")}
+                          </div>
+                        </div>
+
+                        {day.workouts && day.workouts.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-xs font-semibold opacity-70 mb-2">Workouts</p>
+                            <div className="space-y-2">
+                              {day.workouts.map((w, i) => (
+                                <div key={i} className={`text-sm rounded-2xl p-3 border ${cardBorder}`}>
+                                  <div className="font-medium">{w.exercise || "—"}</div>
+                                  <div className="opacity-80">
+                                    {w.sets || "0"}×{w.reps || "0"}
+                                    {w.weight ? ` @ ${w.weight} lb` : ""}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {day.metrics && (
+                          <div className="mt-3">
+                            <p className="text-xs font-semibold opacity-70 mb-2">Metrics</p>
+                            <div className="text-sm grid grid-cols-2 gap-2">
+                              {day.metrics.weight && <div className={`rounded-2xl p-3 border ${cardBorder}`}>Weight: <span className="font-semibold">{day.metrics.weight}</span> lbs</div>}
+                              {day.metrics.sleep && <div className={`rounded-2xl p-3 border ${cardBorder}`}>Sleep: <span className="font-semibold">{day.metrics.sleep}</span> hrs</div>}
+                              {day.metrics.water && <div className={`rounded-2xl p-3 border ${cardBorder}`}>Water: <span className="font-semibold">{day.metrics.water}</span> oz</div>}
+                              {day.metrics.calories && <div className={`rounded-2xl p-3 border ${cardBorder}`}>Calories: <span className="font-semibold">{day.metrics.calories}</span></div>}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                  {Object.values(calendarData).filter((d) => d.saved).length === 0 && (
+                    <p className="opacity-70">No saved days yet. Tap a day on the calendar and save it.</p>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Day Modal */}
             {showDayModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className={`${bgColor} rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto p-6`}>
-                  <h2 className="text-xl font-bold mb-4">{selectedDate?.toLocaleDateString()}</h2>
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                <div className={`${darkMode ? "bg-slate-950" : "bg-white"} border ${cardBorder} rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl`}>
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                      <h2 className="text-xl font-bold">{selectedDate?.toLocaleDateString()}</h2>
+                      <p className="text-xs opacity-70">Plan it. Log it. Become hard to kill (metaphorically). 🗿</p>
+                    </div>
+                    <button
+                      onClick={() => setShowDayModal(false)}
+                      className={`p-2 rounded-2xl ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                      aria-label="Close"
+                    >
+                      <Icon name="x" size={18} />
+                    </button>
+                  </div>
 
                   {/* Workouts */}
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-semibold">Workouts</h3>
-                      <button onClick={addWorkout} className="text-blue-500">
-                        <Icon name="plus" size={20} />
+                      <button
+                        onClick={addWorkout}
+                        className={`px-3 py-2 rounded-2xl text-sm font-semibold ${darkMode ? "bg-white/10 hover:bg-white/15" : "bg-black/5 hover:bg-black/10"}`}
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <Icon name="plus" size={16} />
+                          Add
+                        </span>
                       </button>
                     </div>
+
                     {workoutPlan.map((workout, i) => (
-                      <div key={i} className={`flex gap-2 mb-2 p-2 border ${borderColor} rounded`}>
+                      <div key={i} className={`grid grid-cols-12 gap-2 mb-2 p-3 border ${cardBorder} rounded-2xl`}>
                         <input
                           placeholder="Exercise"
                           value={workout.exercise}
                           onChange={(e) => updateWorkout(i, "exercise", e.target.value)}
-                          className={`flex-1 px-2 py-1 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                          className={`col-span-12 sm:col-span-5 px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                         />
                         <input
                           placeholder="Sets"
                           type="number"
                           value={workout.sets}
                           onChange={(e) => updateWorkout(i, "sets", e.target.value)}
-                          className={`w-16 px-2 py-1 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                          className={`col-span-4 sm:col-span-2 px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                         />
                         <input
                           placeholder="Reps"
                           type="number"
                           value={workout.reps}
                           onChange={(e) => updateWorkout(i, "reps", e.target.value)}
-                          className={`w-16 px-2 py-1 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                          className={`col-span-4 sm:col-span-2 px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                         />
-                        <button onClick={() => removeWorkout(i)} className="text-red-500">
+                        <input
+                          placeholder="Weight"
+                          type="number"
+                          value={workout.weight || ""}
+                          onChange={(e) => updateWorkout(i, "weight", e.target.value)}
+                          className={`col-span-4 sm:col-span-2 px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
+                        />
+                        <button
+                          onClick={() => removeWorkout(i)}
+                          className={`col-span-12 sm:col-span-1 px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"} text-rose-500`}
+                          aria-label="Remove workout"
+                          title="Remove"
+                        >
                           <Icon name="trash-2" size={18} />
                         </button>
                       </div>
                     ))}
+
                     {workoutPlan.length === 0 && (
-                      <p className="text-sm text-gray-500">No workouts yet. Tap + to add one.</p>
+                      <p className="text-sm opacity-70">No workouts yet. Add one and feed the logbook.</p>
                     )}
                   </div>
 
@@ -569,32 +900,45 @@
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-semibold">Food & Calories</h3>
-                      <button onClick={addFood} className="text-blue-500">
-                        <Icon name="plus" size={20} />
+                      <button
+                        onClick={addFood}
+                        className={`px-3 py-2 rounded-2xl text-sm font-semibold ${darkMode ? "bg-white/10 hover:bg-white/15" : "bg-black/5 hover:bg-black/10"}`}
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <Icon name="plus" size={16} />
+                          Add
+                        </span>
                       </button>
                     </div>
+
                     {foodEntries.map((food, i) => (
-                      <div key={i} className={`flex gap-2 mb-2 p-2 border ${borderColor} rounded`}>
+                      <div key={i} className={`flex gap-2 mb-2 p-3 border ${cardBorder} rounded-2xl`}>
                         <input
                           placeholder="Food item"
                           value={food.name}
                           onChange={(e) => updateFood(i, "name", e.target.value)}
-                          className={`flex-1 px-2 py-1 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                          className={`flex-1 px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                         />
                         <input
                           placeholder="Cal"
                           type="number"
                           value={food.calories}
                           onChange={(e) => updateFood(i, "calories", e.target.value)}
-                          className={`w-20 px-2 py-1 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                          className={`w-24 px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                         />
-                        <button onClick={() => removeFood(i)} className="text-red-500">
+                        <button
+                          onClick={() => removeFood(i)}
+                          className={`px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"} text-rose-500`}
+                          aria-label="Remove food"
+                          title="Remove"
+                        >
                           <Icon name="trash-2" size={18} />
                         </button>
                       </div>
                     ))}
+
                     {foodEntries.length === 0 && (
-                      <p className="text-sm text-gray-500">No food entries yet. Tap + to add one.</p>
+                      <p className="text-sm opacity-70">No food entries yet. Add a snack. Or a feast. 🥣</p>
                     )}
                   </div>
 
@@ -607,28 +951,28 @@
                         type="number"
                         value={dailyMetrics.weight}
                         onChange={(e) => setDailyMetrics({ ...dailyMetrics, weight: e.target.value })}
-                        className={`w-full px-3 py-2 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                        className={`w-full px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                       />
                       <input
                         placeholder="Sleep (hours)"
                         type="number"
                         value={dailyMetrics.sleep}
                         onChange={(e) => setDailyMetrics({ ...dailyMetrics, sleep: e.target.value })}
-                        className={`w-full px-3 py-2 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                        className={`w-full px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                       />
                       <input
                         placeholder="Water (oz)"
                         type="number"
                         value={dailyMetrics.water}
                         onChange={(e) => setDailyMetrics({ ...dailyMetrics, water: e.target.value })}
-                        className={`w-full px-3 py-2 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                        className={`w-full px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                       />
                       <input
                         placeholder="Total Calories"
                         type="number"
                         value={dailyMetrics.calories}
                         onChange={(e) => setDailyMetrics({ ...dailyMetrics, calories: e.target.value })}
-                        className={`w-full px-3 py-2 rounded ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}
+                        className={`w-full px-3 py-2 rounded-2xl border ${cardBorder} ${darkMode ? "bg-white/5" : "bg-white"}`}
                       />
                     </div>
                   </div>
@@ -637,17 +981,21 @@
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowDayModal(false)}
-                      className={`flex-1 py-2 rounded border ${borderColor}`}
+                      className={`flex-1 py-3 rounded-2xl border ${cardBorder} ${darkMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={saveDayData}
-                      className="flex-1 py-2 rounded bg-blue-500 text-white"
+                      className={`flex-1 py-3 rounded-2xl text-white font-semibold ${accentGradient}`}
                     >
                       Save Day
                     </button>
                   </div>
+
+                  <p className="text-xs opacity-60 mt-3">
+                    Tip: For your “Max weight (1RM)” to be correct, log a set with <span className="font-semibold">reps = 1</span> and the weight you hit.
+                  </p>
                 </div>
               </div>
             )}
